@@ -1,5 +1,6 @@
 package main.java.view;
 
+import main.java.controller.Controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,21 +8,47 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 
-public class ToolbarView extends JPanel {
+public class ToolbarView extends JPanel implements View{
     private static final Logger logger = LoggerFactory.getLogger(ToolbarView.class);
     private static final Color bgColor = new Color(60, 63, 65);
     private static final Color lineColor = new Color(77, 77, 77);
+    private Controller controller;
+    private final JFrame mainFrame;
 
-    public ToolbarView(){
+    public ToolbarView(JFrame mainFrame){
+        this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createMatteBorder(0 ,0, 1, 0, lineColor));
         setBackground(bgColor);
         add(createAppIcon(), BorderLayout.WEST);
         add(createAppTitle(), BorderLayout.CENTER);
         add(createAppServiceButtons(), BorderLayout.EAST);
+    }
+
+    private void dragWindow(JTextPane textPane, JFrame frame) {
+        final int[] pX = new int[1];
+        final int[] pY = new int[1];
+        textPane.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent me) {
+                // Get x,y and store them
+                pX[0] = me.getX();
+                pY[0] = me.getY();
+            }
+            public void mouseDragged(MouseEvent me) {
+                frame.setLocation(frame.getLocation().x + me.getX() - pX[0],
+                        frame.getLocation().y + me.getY() - pY[0]);
+            }
+        });
+        textPane.addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent me) {
+                frame.setLocation(frame.getLocation().x + me.getX() - pX[0],
+                        frame.getLocation().y + me.getY() - pY[0]);
+            }
+        });
     }
 
     private JButton createAppIcon(){
@@ -42,6 +69,7 @@ public class ToolbarView extends JPanel {
     private JTextPane createAppTitle(){
         // insert "me!" after "ping" and centralize text
         JTextPane title = new JTextPane();
+        dragWindow(title, mainFrame);
         title.setText("ping");
         title.setForeground(Color.WHITE);
         try {
@@ -53,7 +81,7 @@ public class ToolbarView extends JPanel {
             ge.registerFont(customFont);
             title.setFont(customFont);
         } catch (IOException | FontFormatException e) {
-            logger.warn("Cannot load font src/main/resources/fonts/Bauhaus_ITC.ttf\n" + e);
+            logger.warn("Cannot load font src/main/resources/fonts/Bauhaus_ITC.ttf" + e);
             title.setFont(new Font("Consolas", Font.PLAIN, 20));
         }
         if (!insertMeInTitle(title)){
@@ -86,25 +114,34 @@ public class ToolbarView extends JPanel {
     }
 
     private JPanel createAppServiceButtons(){
-        JPanel serviceButtons = new JPanel();
-        serviceButtons.setBackground(bgColor);
-        serviceButtons.setLayout(new FlowLayout());
-        serviceButtons.add(ServiceButtons.MINIMIZE_BTN);
-        serviceButtons.add(ServiceButtons.SETTINGS_BTN);
-        serviceButtons.add(ServiceButtons.CLOSE_BTN);
-        return serviceButtons;
+        JPanel serviceButtonsPanel = new JPanel();
+        serviceButtonsPanel.setBackground(bgColor);
+        serviceButtonsPanel.setLayout(new FlowLayout());
+
+        ServiceButtons serviceButtons = new ServiceButtons();
+        serviceButtonsPanel.add(serviceButtons.MINIMIZE_BTN);
+        serviceButtonsPanel.add(serviceButtons.SETTINGS_BTN);
+        serviceButtonsPanel.add(serviceButtons.CLOSE_BTN);
+
+        return serviceButtonsPanel;
     }
 
-    public static class ServiceButtons{
-        public static final JButton MINIMIZE_BTN = createMinimizeButton();
-        public static final JCheckBox SETTINGS_BTN = createSettingsButton();
-        public static final JButton CLOSE_BTN = createCloseButton();
+    @Override
+    public void setController(Controller controller) {
+        this.controller = controller;
+    }
 
-        private static JButton createMinimizeButton(){
+    public class ServiceButtons{
+        public final JButton MINIMIZE_BTN = createMinimizeButton();
+        public final JCheckBox SETTINGS_BTN = createSettingsButton();
+        public final JButton CLOSE_BTN = createCloseButton();
+
+        private JButton createMinimizeButton(){
             JButton btn = new JButton();
             btn.setBackground(bgColor);
             btn.setFocusPainted(false);
             btn.setBorderPainted(false);
+            btn.setContentAreaFilled(false);
             btn.setBorder(BorderFactory.createEmptyBorder(5, 12, 0, 12));
             try {
                 Image minimize = ImageIO.read(new File("src/main/resources/img/toolbar/minimize.png"));
@@ -112,10 +149,16 @@ public class ToolbarView extends JPanel {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            btn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    mainFrame.setState(Frame.ICONIFIED);
+                }
+            });
             return btn;
         }
 
-        private static JCheckBox createSettingsButton(){
+        private JCheckBox createSettingsButton(){
             JCheckBox checkBox = new JCheckBox();
             checkBox.setBackground(bgColor);
             checkBox.setFocusPainted(false);
@@ -130,11 +173,12 @@ public class ToolbarView extends JPanel {
             return checkBox;
         }
 
-        private static JButton createCloseButton(){
+        private JButton createCloseButton(){
             JButton btn = new JButton();
             btn.setBackground(bgColor);
             btn.setFocusPainted(false);
             btn.setBorderPainted(false);
+            btn.setContentAreaFilled(false);
             btn.setBorder(BorderFactory.createEmptyBorder(5, 12, 0, 12));
             try {
                 Image cross = ImageIO.read(new File("src/main/resources/img/toolbar/close.png"));
@@ -142,6 +186,12 @@ public class ToolbarView extends JPanel {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            btn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    System.exit(0);
+                }
+            });
             return btn;
         }
     }
