@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
-    <file url="file://$PROJECT_DIR$/src/main/resources/img/toolbar/tray/taskbar.png" charset="windows-1251" />
-    <file url="file://$PROJECT_DIR$/src/main/resources/img/tray/taskbar.png" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/img/servers/add.png" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/img/servers/csgo.png" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/img/servers/dota2.png" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/img/servers/google.png" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/img/servers/yandex.png" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/fonts/Bauhaus_ITC.ttf" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/toolbar/close.png" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/toolbar/minimize.png" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/toolbar/ping_ico.png" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/toolbar/settings.png" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/toolbar/tray/taskbar.png" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/tray/taskbar.png" charset="windows-1251" />
   </component>
 </project>

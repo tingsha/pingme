@@ -14,8 +14,8 @@ import java.io.IOException;
 
 public class MainView extends JFrame implements View {
     private static final Logger logger = LoggerFactory.getLogger(MainView.class);
-    public static final int WIDTH = 960;
-    public static final int HEIGHT = 640;
+    public static final int WIDTH = 1000;
+    public static final int HEIGHT = 700;
     private Controller controller;
     private SystemTray tray;
 
@@ -24,6 +24,14 @@ public class MainView extends JFrame implements View {
         setLayout(new BorderLayout());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
+
+        getRootPane().setBorder(BorderFactory.createLineBorder(new Color(77, 77, 77), 1));
+
+        ComponentResizer cr = new ComponentResizer();
+        cr.registerComponent(this);
+        cr.setSnapSize(new Dimension(10, 10));
+        cr.setMaximumSize(new Dimension(1600, 800));
+        cr.setMinimumSize(new Dimension(800, 500));
 
         try {
             createNewTray();
