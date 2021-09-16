@@ -42,6 +42,7 @@ public class MainView extends JFrame implements View {
 
         add(new ServersView(), BorderLayout.CENTER);
         add(new ToolbarView(this), BorderLayout.NORTH);
+        //add(new PingBtnView(), BorderLayout.SOUTH);
 
         pack();
         setBounds(0, 0, WIDTH, HEIGHT);
