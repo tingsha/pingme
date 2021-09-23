@@ -1,14 +1,14 @@
 package main.java.view;
 
 import main.java.controller.Controller;
+import main.java.model.PingTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -18,6 +18,9 @@ public class MainView extends JFrame implements View {
     public static final int HEIGHT = 700;
     private Controller controller;
     private SystemTray tray;
+    private final ServersView serversView = new ServersView(this);
+    private final ToolbarView toolbarView = new ToolbarView(this);
+    private TrayIcon trayIcon;
 
     public MainView() throws HeadlessException {
         setUndecorated(true);
@@ -40,9 +43,8 @@ public class MainView extends JFrame implements View {
             System.exit(-1);
         }
 
-        add(new ServersView(), BorderLayout.CENTER);
-        add(new ToolbarView(this), BorderLayout.NORTH);
-        //add(new PingBtnView(), BorderLayout.SOUTH);
+        add(serversView, BorderLayout.CENTER);
+        add(toolbarView, BorderLayout.NORTH);
 
         pack();
         setBounds(0, 0, WIDTH, HEIGHT);
@@ -52,12 +54,15 @@ public class MainView extends JFrame implements View {
     @Override
     public void setController(Controller controller) {
         this.controller = controller;
+        controller.setMainView(this);
+        serversView.setController(controller);
+        toolbarView.setController(controller);
     }
 
     public void createNewTray() throws IOException {
         tray = SystemTray.getSystemTray();
         PopupMenu popup = new PopupMenu();
-        TrayIcon trayIcon = new TrayIcon(ImageIO.read(new File("src/main/resources/img/tray/tray.png")), "pingme!", popup);
+        trayIcon = new TrayIcon(ImageIO.read(new File("src/main/resources/img/tray/tray.png")), "pingme!", popup);
         trayIcon.setImageAutoSize(true);
         MenuItem Items = new MenuItem("Open");
         Items.addActionListener(new ActionListener() {
@@ -71,10 +76,25 @@ public class MainView extends JFrame implements View {
         Items = new MenuItem("Exit");
         ActionListener exitListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                controller.onClickTrayExit();
                 System.exit(0);
             }
         };
         Items.addActionListener(exitListener);
         popup.add(Items);
+    }
+
+    public void hideToTray(){
+        setVisible(false);
+        try {
+            tray.add(trayIcon);
+        } catch (AWTException e) {
+            logger.error("Can't create tray! " + e.getMessage());
+        }
+    }
+
+    public void removeFromTray(){
+        tray.remove(trayIcon);
+        PingTask.pingProcess.destroy();
     }
 }

@@ -9,10 +9,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,17 +19,16 @@ public class ServersView extends JPanel implements View{
     private final Color bgColor = new Color(43, 43, 43);
     private final Color lineColor = new Color(77, 77, 77);
     private final Color selectedLineColor = new Color(255, 192, 203);
-    private final JPanel linePanel;
-    private final JPanel verticalLinePanel;
-    private final PingBtnView pingBtn = new PingBtnView();
+    private final PingBtnView pingBtn;
 
-    public ServersView(){
+    public ServersView(MainView mainView){
+        pingBtn = new PingBtnView(mainView);
         setBackground(bgColor);
         setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
 
-        linePanel = getLinesPanel();
-        verticalLinePanel = getVerticalLinePanel();
+        JPanel linePanel = getHorizontalLinePanel();
+        JPanel verticalLinePanel = getVerticalLinePanel();
 
         JRadioButton googleServerBtn = new ServerButton(Path.of("src/main/resources/img/servers/google.png"), "google.com",
                 Arrays.asList(
@@ -43,7 +40,7 @@ public class ServersView extends JPanel implements View{
                         new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
                         new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
                 ));
-        JRadioButton yandexServerBtn = new ServerButton(Path.of("src/main/resources/img/servers/yandex.png"), "yandex.ru",
+        JRadioButton yandexServerBtn = new ServerButton(Path.of("src/main/resources/img/servers/yandex.png"), "ya.ru",
                 Arrays.asList(
                         new Line(new Point(405, 0), new Point(405, 30), linePanel),
                         new Line(new Point(405, 30), new Point(405, 60), linePanel),
@@ -136,7 +133,7 @@ public class ServersView extends JPanel implements View{
         return panel;
     }
 
-    private JPanel getLinesPanel(){
+    private JPanel getHorizontalLinePanel(){
         JPanel panel = new JPanel(){
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -167,6 +164,7 @@ public class ServersView extends JPanel implements View{
     @Override
     public void setController(Controller controller) {
         this.controller = controller;
+        pingBtn.setController(controller);
     }
 
     public class ServerButton extends JRadioButton{
@@ -193,7 +191,7 @@ public class ServersView extends JPanel implements View{
                         setBorder(new TextBubbleBorder(selectedLineColor, 2, 16, 0));
                         changeLinesColor(selectedLineColor);
                         pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_pink.png"));
-                        controller.onClickSettingsBtn(ServersView.ServerButton.this);
+                        controller.onClickServerBtn(ServersView.ServerButton.this);
                     } else if (e.getStateChange() == ItemEvent.DESELECTED){
                         setBorder(new TextBubbleBorder(lineColor, 2, 16, 0));
                         changeLinesColor(lineColor);
