@@ -17,38 +17,15 @@ public class ToolbarView extends JPanel implements View{
     private static final Color bgColor = new Color(60, 63, 65);
     private static final Color lineColor = new Color(77, 77, 77);
     private Controller controller;
-    private final JFrame mainFrame;
+    private final JTextPane appTitle = createAppTitle();
 
-    public ToolbarView(JFrame mainFrame){
-        this.mainFrame = mainFrame;
+    public ToolbarView(){
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createMatteBorder(0 ,0, 1, 0, lineColor));
         setBackground(bgColor);
         add(createAppIcon(), BorderLayout.WEST);
-        add(createAppTitle(), BorderLayout.CENTER);
+        add(appTitle, BorderLayout.CENTER);
         add(createAppServiceButtons(), BorderLayout.EAST);
-    }
-
-    private void dragWindow(JTextPane textPane, JFrame frame) {
-        final int[] pX = new int[1];
-        final int[] pY = new int[1];
-        textPane.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent me) {
-                // Get x,y and store them
-                pX[0] = me.getX();
-                pY[0] = me.getY();
-            }
-            public void mouseDragged(MouseEvent me) {
-                frame.setLocation(frame.getLocation().x + me.getX() - pX[0],
-                        frame.getLocation().y + me.getY() - pY[0]);
-            }
-        });
-        textPane.addMouseMotionListener(new MouseMotionAdapter() {
-            public void mouseDragged(MouseEvent me) {
-                frame.setLocation(frame.getLocation().x + me.getX() - pX[0],
-                        frame.getLocation().y + me.getY() - pY[0]);
-            }
-        });
     }
 
     private JButton createAppIcon(){
@@ -69,7 +46,6 @@ public class ToolbarView extends JPanel implements View{
     private JTextPane createAppTitle(){
         // insert "me!" after "ping" and centralize text
         JTextPane title = new JTextPane();
-        dragWindow(title, mainFrame);
         title.setText("ping");
         title.setForeground(Color.WHITE);
         try {
@@ -152,7 +128,7 @@ public class ToolbarView extends JPanel implements View{
             btn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    mainFrame.setState(Frame.ICONIFIED);
+                    //mainFrame.setState(Frame.ICONIFIED);
                 }
             });
             return btn;
@@ -194,5 +170,9 @@ public class ToolbarView extends JPanel implements View{
             });
             return btn;
         }
+    }
+
+    public JTextPane getAppTitle() {
+        return appTitle;
     }
 }
