@@ -14,15 +14,13 @@ import java.io.IOException;
 
 public class ToolbarView extends JPanel implements View{
     private static final Logger logger = LoggerFactory.getLogger(ToolbarView.class);
-    private static final Color bgColor = new Color(60, 63, 65);
-    private static final Color lineColor = new Color(77, 77, 77);
     private Controller controller;
     private final JTextPane appTitle = createAppTitle();
 
     public ToolbarView(){
         setLayout(new BorderLayout());
-        setBorder(BorderFactory.createMatteBorder(0 ,0, 1, 0, lineColor));
-        setBackground(bgColor);
+        setBorder(BorderFactory.createMatteBorder(0 ,0, 1, 0, Colors.DESELECTED_LINE));
+        setBackground(Colors.TOOLBAR_BACKGROUND);
         add(createAppIcon(), BorderLayout.WEST);
         add(appTitle, BorderLayout.CENTER);
         add(createAppServiceButtons(), BorderLayout.EAST);
@@ -30,7 +28,7 @@ public class ToolbarView extends JPanel implements View{
 
     private JButton createAppIcon(){
         JButton icon = new JButton();
-        icon.setBackground(bgColor);
+        icon.setBackground(Colors.TOOLBAR_BACKGROUND);
         icon.setFocusPainted(false);
         icon.setBorderPainted(false);
         icon.setBorder(BorderFactory.createEmptyBorder(5, 10, 0, 10));
@@ -65,7 +63,7 @@ public class ToolbarView extends JPanel implements View{
         }
         title.setEditable(false);
         title.setBorder(BorderFactory.createEmptyBorder(5, 100, 7, 0));
-        title.setBackground(bgColor);
+        title.setBackground(Colors.TOOLBAR_BACKGROUND);
         return title;
     }
 
@@ -91,7 +89,7 @@ public class ToolbarView extends JPanel implements View{
 
     private JPanel createAppServiceButtons(){
         JPanel serviceButtonsPanel = new JPanel();
-        serviceButtonsPanel.setBackground(bgColor);
+        serviceButtonsPanel.setBackground(Colors.TOOLBAR_BACKGROUND);
         serviceButtonsPanel.setLayout(new FlowLayout());
 
         ServiceButtons serviceButtons = new ServiceButtons();
@@ -114,7 +112,7 @@ public class ToolbarView extends JPanel implements View{
 
         private JButton createMinimizeButton(){
             JButton btn = new JButton();
-            btn.setBackground(bgColor);
+            btn.setBackground(Colors.TOOLBAR_BACKGROUND);
             btn.setFocusPainted(false);
             btn.setBorderPainted(false);
             btn.setContentAreaFilled(false);
@@ -136,7 +134,7 @@ public class ToolbarView extends JPanel implements View{
 
         private JCheckBox createSettingsButton(){
             JCheckBox checkBox = new JCheckBox();
-            checkBox.setBackground(bgColor);
+            checkBox.setBackground(Colors.TOOLBAR_BACKGROUND);
             checkBox.setFocusPainted(false);
             checkBox.setBorderPainted(false);
             checkBox.setBorder(BorderFactory.createEmptyBorder(5, 8, 0, 8));
@@ -151,7 +149,7 @@ public class ToolbarView extends JPanel implements View{
 
         private JButton createCloseButton(){
             JButton btn = new JButton();
-            btn.setBackground(bgColor);
+            btn.setBackground(Colors.TOOLBAR_BACKGROUND);
             btn.setFocusPainted(false);
             btn.setBorderPainted(false);
             btn.setContentAreaFilled(false);

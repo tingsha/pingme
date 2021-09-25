@@ -13,21 +13,17 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 public class ServersView extends JPanel implements View{
     private Controller controller;
-    private final Color bgColor = new Color(43, 43, 43);
-    private final Color lineColor = new Color(77, 77, 77);
-    private final Color selectedLineColor = new Color(255, 192, 203);
     private final PingBtnView pingBtn;
     private final List<ServerButton> serverButtons;
     private ServerButton selectedServer;
 
     public ServersView(){
         pingBtn = new PingBtnView();
-        setBackground(bgColor);
+        setBackground(Colors.SERVERS_BACKGROUND);
         setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -128,7 +124,7 @@ public class ServersView extends JPanel implements View{
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(lineColor);
+                g2d.setColor(Colors.DESELECTED_LINE);
                 g2d.setStroke(new BasicStroke(2f));
 
                 g2d.drawLine(125, 0, 125, 220);
@@ -137,7 +133,7 @@ public class ServersView extends JPanel implements View{
             }
         };
         panel.setPreferredSize(new Dimension(250, 220));
-        panel.setBackground(bgColor);
+        panel.setBackground(Colors.SERVERS_BACKGROUND);
         return panel;
     }
 
@@ -147,7 +143,7 @@ public class ServersView extends JPanel implements View{
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(lineColor);
+                g2d.setColor(Colors.DESELECTED_LINE);
                 g2d.setStroke(new BasicStroke(2f));
 
                 g2d.drawLine(10, 0, 10, 30);
@@ -166,7 +162,7 @@ public class ServersView extends JPanel implements View{
             }
         };
         panel.setPreferredSize(new Dimension(810, 60));
-        panel.setBackground(bgColor);
+        panel.setBackground(Colors.SERVERS_BACKGROUND);
         return panel;
     }
 
@@ -194,11 +190,11 @@ public class ServersView extends JPanel implements View{
             this.pathToIcon = pathToIcon;
             this.domain = domain;
             this.linkedLines = linkedLines;
-            setBorder(new TextBubbleBorder(lineColor, 2, 16, 0));
+            setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0));
             setBorderPainted(true);
             setIcon(getIcon());
             setHorizontalAlignment(SwingConstants.CENTER);
-            setBackground(bgColor);
+            setBackground(Colors.SERVERS_BACKGROUND);
             setLayout(new BorderLayout());
             setPreferredSize(new Dimension(250, 220));
             addItemListener(new ItemListener() {
@@ -206,13 +202,13 @@ public class ServersView extends JPanel implements View{
                 public void itemStateChanged(ItemEvent e) {
                     if (e.getStateChange() == ItemEvent.SELECTED) {
                         selectedServer = ServerButton.this;
-                        setBorder(new TextBubbleBorder(selectedLineColor, 2, 16, 0));
-                        changeLinesColor(selectedLineColor);
+                        setBorder(new TextBubbleBorder(Colors.SELECTED_LINE, 2, 16, 0));
+                        changeLinesColor(Colors.SELECTED_LINE);
                         pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_pink.png"));
                         controller.onClickServerBtn(ServersView.ServerButton.this);
                     } else if (e.getStateChange() == ItemEvent.DESELECTED){
-                        setBorder(new TextBubbleBorder(lineColor, 2, 16, 0));
-                        changeLinesColor(lineColor);
+                        setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0));
+                        changeLinesColor(Colors.DESELECTED_LINE);
                         pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_grey.png"));
                     }
                 }
