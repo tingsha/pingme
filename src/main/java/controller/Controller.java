@@ -1,12 +1,9 @@
 package main.java.controller;
 
 import main.java.model.Model;
-import main.java.model.PingTask;
 import main.java.view.MainView;
 import main.java.view.ServersView;
 import main.java.view.StatisticView;
-
-import java.util.Objects;
 
 public class Controller {
     private final Model model;
@@ -21,20 +18,22 @@ public class Controller {
         model.setDomain(button.getDomain());
     }
 
-    public void onClickPingBtn(boolean isSelected){
+    public void onSelectPingBtn(){
         if (model.getDomain() == null || model.getDomain().equals(""))
             return;
-        if (isSelected) {
-            model.pingTest();
-            mainView.hideToTray();
-        }
-        else
-            model.stopPing();
+        model.pingTest();
+        mainView.hideToTray();
         //model.speedTest();
     }
 
+    public void onDeselectPingBtn(){
+        if (model.getDomain() == null || model.getDomain().equals(""))
+            return;
+        model.stopPingTask();
+    }
+
     public void onClickTrayExit(){
-        model.stopPing();
+        model.stopPingTask();
         mainView.removeFromTray();
     }
 

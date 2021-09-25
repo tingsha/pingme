@@ -11,7 +11,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public class ServersView extends JPanel implements View{
@@ -20,103 +22,109 @@ public class ServersView extends JPanel implements View{
     private final Color lineColor = new Color(77, 77, 77);
     private final Color selectedLineColor = new Color(255, 192, 203);
     private final PingBtnView pingBtn;
+    private final List<ServerButton> serverButtons;
+    private ServerButton selectedServer;
 
-    public ServersView(MainView mainView){
-        pingBtn = new PingBtnView(mainView);
+    public ServersView(){
+        pingBtn = new PingBtnView();
         setBackground(bgColor);
         setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
 
-        JPanel linePanel = getHorizontalLinePanel();
+        JPanel horizontalLinePanel = getHorizontalLinePanel();
         JPanel verticalLinePanel = getVerticalLinePanel();
+        serverButtons = createServerBtns(horizontalLinePanel, verticalLinePanel);
 
-        JRadioButton googleServerBtn = new ServerButton(Path.of("src/main/resources/img/servers/google.png"), "google.com",
-                Arrays.asList(
-                        new Line(new Point(10, 0), new Point(10, 30), linePanel),
-                        new Line(new Point(10, 30), new Point(180, 30), linePanel),
-                        new Line(new Point(180, 30), new Point(405, 30), linePanel),
-                        new Line(new Point(405, 30), new Point(405, 60), linePanel),
-                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                ));
-        JRadioButton yandexServerBtn = new ServerButton(Path.of("src/main/resources/img/servers/yandex.png"), "ya.ru",
-                Arrays.asList(
-                        new Line(new Point(405, 0), new Point(405, 30), linePanel),
-                        new Line(new Point(405, 30), new Point(405, 60), linePanel),
-                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                ));
-        JRadioButton csgoServerBtn = new ServerButton(Path.of("src/main/resources/img/servers/csgo.png"), "CS:GO",
-                Arrays.asList(
-                        new Line(new Point(405, 30), new Point(630, 30), linePanel),
-                        new Line(new Point(630, 30), new Point(800, 30), linePanel),
-                        new Line(new Point(800, 0), new Point(800, 30), linePanel),
-                        new Line(new Point(405, 30), new Point(405, 60), linePanel),
-                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                ));
-        JRadioButton dotaServerBtn = new ServerButton(Path.of("src/main/resources/img/servers/dota2.png"), "Dota 2",
-                Arrays.asList(
-                        new Line(new Point(180, 30), new Point(180, 60), linePanel),
-                        new Line(new Point(180, 30), new Point(405, 30), linePanel),
-                        new Line(new Point(405, 30), new Point(405, 60), linePanel),
-                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                ));
-        JRadioButton userServerBtn = new ServerButton(Path.of("src/main/resources/img/servers/add.png"), "Add",
-                Arrays.asList(
-                        new Line(new Point(405, 30), new Point(630, 30), linePanel),
-                        new Line(new Point(630, 30), new Point(630, 60), linePanel),
-                        new Line(new Point(405, 30), new Point(405, 60), linePanel),
-                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                ));
-
-        ButtonGroup servers = new ButtonGroup();
-        servers.add(googleServerBtn);
-        servers.add(yandexServerBtn);
-        servers.add(csgoServerBtn);
-        servers.add(dotaServerBtn);
-        servers.add(userServerBtn);
+        ButtonGroup serversGroup = new ButtonGroup();
+        for (ServerButton serverButton : serverButtons)
+            serversGroup.add(serverButton);
 
         constraints.insets = new Insets(0, 30, 0, 30);
+
         constraints.gridx = 0;
-        add(googleServerBtn, constraints);
+        add(serverButtons.get(0), constraints);
 
         constraints.gridx = 1;
-        add(yandexServerBtn, constraints);
+        add(serverButtons.get(1), constraints);
 
         constraints.gridx = 2;
-        add(csgoServerBtn, constraints);
+        add(serverButtons.get(2), constraints);
 
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.gridwidth = 3;
-        add(linePanel, constraints);
+        add(horizontalLinePanel, constraints);
 
         constraints.gridx = 0;
         constraints.gridy = 2;
         constraints.gridwidth = 1;
-        add(dotaServerBtn, constraints);
+        add(serverButtons.get(3), constraints);
 
         constraints.gridx = 1;
         add(verticalLinePanel, constraints);
 
         constraints.gridx = 2;
-        add(userServerBtn, constraints);
+        add(serverButtons.get(4), constraints);
 
         constraints.gridx = 1;
         constraints.gridy= 3;
         add(pingBtn, constraints);
     }
 
+    private List<ServerButton> createServerBtns(JPanel horizontalLinePanel, JPanel verticalLinePanel){
+        List<ServerButton> btns = new ArrayList<>();
+        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/google.png"), "google.com",
+                Arrays.asList(
+                        new Line(new Point(10, 0), new Point(10, 30), horizontalLinePanel),
+                        new Line(new Point(10, 30), new Point(180, 30), horizontalLinePanel),
+                        new Line(new Point(180, 30), new Point(405, 30), horizontalLinePanel),
+                        new Line(new Point(405, 30), new Point(405, 60), horizontalLinePanel),
+                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
+                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
+                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
+                )));
+        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/yandex.png"), "ya.ru",
+                Arrays.asList(
+                        new Line(new Point(405, 0), new Point(405, 30), horizontalLinePanel),
+                        new Line(new Point(405, 30), new Point(405, 60), horizontalLinePanel),
+                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
+                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
+                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
+                )));
+        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/csgo.png"), "CS:GO",
+                Arrays.asList(
+                        new Line(new Point(405, 30), new Point(630, 30), horizontalLinePanel),
+                        new Line(new Point(630, 30), new Point(800, 30), horizontalLinePanel),
+                        new Line(new Point(800, 0), new Point(800, 30), horizontalLinePanel),
+                        new Line(new Point(405, 30), new Point(405, 60), horizontalLinePanel),
+                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
+                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
+                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
+                )));
+        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/dota2.png"), "Dota 2",
+                Arrays.asList(
+                        new Line(new Point(180, 30), new Point(180, 60), horizontalLinePanel),
+                        new Line(new Point(180, 30), new Point(405, 30), horizontalLinePanel),
+                        new Line(new Point(405, 30), new Point(405, 60), horizontalLinePanel),
+                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
+                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
+                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
+                )));
+        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/add.png"), "Add",
+                Arrays.asList(
+                        new Line(new Point(405, 30), new Point(630, 30), horizontalLinePanel),
+                        new Line(new Point(630, 30), new Point(630, 60), horizontalLinePanel),
+                        new Line(new Point(405, 30), new Point(405, 60), horizontalLinePanel),
+                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
+                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
+                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
+                )));
+        return btns;
+    }
+
     private JPanel getVerticalLinePanel(){
         JPanel panel = new JPanel(){
+            @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
@@ -135,6 +143,7 @@ public class ServersView extends JPanel implements View{
 
     private JPanel getHorizontalLinePanel(){
         JPanel panel = new JPanel(){
+            @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
@@ -167,6 +176,14 @@ public class ServersView extends JPanel implements View{
         pingBtn.setController(controller);
     }
 
+    public List<ServerButton> getServerButtons() {
+        return serverButtons;
+    }
+
+    public ServerButton getSelectedServer() {
+        return selectedServer;
+    }
+
     public class ServerButton extends JRadioButton{
         private static final Logger logger = LoggerFactory.getLogger(ServerButton.class);
         private final Path pathToIcon;
@@ -188,6 +205,7 @@ public class ServersView extends JPanel implements View{
                 @Override
                 public void itemStateChanged(ItemEvent e) {
                     if (e.getStateChange() == ItemEvent.SELECTED) {
+                        selectedServer = ServerButton.this;
                         setBorder(new TextBubbleBorder(selectedLineColor, 2, 16, 0));
                         changeLinesColor(selectedLineColor);
                         pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_pink.png"));
@@ -217,11 +235,10 @@ public class ServersView extends JPanel implements View{
         public void changeLinesColor(Color color){
             for (Line line : linkedLines){
                 Graphics2D g2d = (Graphics2D) line.linkedPanel.getGraphics();
-                g2d.setStroke(new BasicStroke(2));
+                g2d.setStroke(new BasicStroke(2f));
                 g2d.setColor(color);
                 g2d.drawLine(line.start.x, line.start.y, line.end.x, line.end.y);
             }
-            repaint();
         }
     }
 

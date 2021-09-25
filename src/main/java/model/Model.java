@@ -31,7 +31,7 @@ public class Model {
         executor.execute(pingThread);
     }
 
-    public void stopPing(){
+    public void stopPingTask(){
         PingTask.pingProcess.destroy();
         pingThread.interrupt();
     }

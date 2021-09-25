@@ -19,13 +19,12 @@ public class ToolbarView extends JPanel implements View{
     private Controller controller;
     private final JTextPane appTitle = createAppTitle();
 
-    public ToolbarView(JFrame mainView){
+    public ToolbarView(){
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createMatteBorder(0 ,0, 1, 0, lineColor));
         setBackground(bgColor);
         add(createAppIcon(), BorderLayout.WEST);
         add(appTitle, BorderLayout.CENTER);
-        Dragger.dragWindow(appTitle, mainView);
         add(createAppServiceButtons(), BorderLayout.EAST);
     }
 

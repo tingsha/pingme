@@ -18,8 +18,8 @@ public class MainView extends JFrame implements View {
     public static final int HEIGHT = 700;
     private Controller controller;
     private SystemTray tray;
-    private final ServersView serversView = new ServersView(this);
-    private final ToolbarView toolbarView = new ToolbarView(this);
+    private final ServersView serversView = new ServersView();
+    private final ToolbarView toolbarView = new ToolbarView();
     private TrayIcon trayIcon;
 
     public MainView() throws HeadlessException {
@@ -45,6 +45,18 @@ public class MainView extends JFrame implements View {
 
         add(serversView, BorderLayout.CENTER);
         add(toolbarView, BorderLayout.NORTH);
+        Dragger.dragWindow(toolbarView.getAppTitle(), this);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowIconified(WindowEvent e) {
+                try{
+                    //TODO fix bug
+                    serversView.getSelectedServer().changeLinesColor(new Color(255, 192, 203));
+                } catch (Exception ignored){
+                }
+            }
+        });
 
         pack();
         setBounds(0, 0, WIDTH, HEIGHT);

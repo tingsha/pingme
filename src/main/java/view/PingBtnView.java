@@ -10,18 +10,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class PingBtnView extends JCheckBox implements View{
+public class PingBtnView extends JCheckBox implements View {
     private Controller controller;
     private final Color bgColor = new Color(43, 43, 43);
     private final static Logger logger = LoggerFactory.getLogger(PingBtnView.class);
 
-    public PingBtnView(MainView mainView){
+    public PingBtnView(){
         setHorizontalAlignment((int) CENTER_ALIGNMENT);
         setBackground(bgColor);
         setBorder(BorderFactory.createEmptyBorder(0, 17, 0, 7));
@@ -34,9 +33,10 @@ public class PingBtnView extends JCheckBox implements View{
             public void itemStateChanged(ItemEvent e) {
                 StatisticView statisticView = null;
                 if (e.getStateChange() == ItemEvent.SELECTED) {
+                    setImageIcon(Path.of("src/main/resources/img/charger/charger_complete.png"));
                     statisticView = new StatisticView();
                     StatisticView finalStatisticView = statisticView;
-                    controller.onClickPingBtn(true);
+                    controller.onSelectPingBtn();
                     Runnable runnable = new Runnable() {
                         @Override
                         public void run() {
@@ -48,8 +48,9 @@ public class PingBtnView extends JCheckBox implements View{
                     Executor executor = Executors.newSingleThreadExecutor();
                     executor.execute(runnable);
                 } else if (e.getStateChange() == ItemEvent.DESELECTED){
+                    setImageIcon(Path.of("src/main/resources/img/charger/charger_grey.png"));
                     statisticView.setVisible(false);
-                    controller.onClickPingBtn(false);
+                    controller.onDeselectPingBtn();
                 }
             }
         });
