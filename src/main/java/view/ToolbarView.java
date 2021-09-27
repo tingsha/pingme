@@ -16,8 +16,10 @@ public class ToolbarView extends JPanel implements View{
     private static final Logger logger = LoggerFactory.getLogger(ToolbarView.class);
     private Controller controller;
     private final JTextPane appTitle = createAppTitle();
+    private final JFrame mainView;
 
-    public ToolbarView(){
+    public ToolbarView(JFrame mainView){
+        this.mainView = mainView;
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createMatteBorder(0 ,0, 1, 0, Colors.DESELECTED_LINE));
         setBackground(Colors.TOOLBAR_BACKGROUND);
@@ -107,7 +109,7 @@ public class ToolbarView extends JPanel implements View{
 
     public class ServiceButtons{
         public final JButton MINIMIZE_BTN = createMinimizeButton();
-        public final JCheckBox SETTINGS_BTN = createSettingsButton();
+        public final JButton SETTINGS_BTN = createSettingsButton();
         public final JButton CLOSE_BTN = createCloseButton();
 
         private JButton createMinimizeButton(){
@@ -132,19 +134,26 @@ public class ToolbarView extends JPanel implements View{
             return btn;
         }
 
-        private JCheckBox createSettingsButton(){
-            JCheckBox checkBox = new JCheckBox();
-            checkBox.setBackground(Colors.TOOLBAR_BACKGROUND);
-            checkBox.setFocusPainted(false);
-            checkBox.setBorderPainted(false);
-            checkBox.setBorder(BorderFactory.createEmptyBorder(5, 8, 0, 8));
+        private JButton createSettingsButton(){
+            JButton btn = new JButton();
+            btn.setBackground(Colors.TOOLBAR_BACKGROUND);
+            btn.setFocusPainted(false);
+            btn.setBorderPainted(false);
+            btn.setContentAreaFilled(false);
+            btn.setBorder(BorderFactory.createEmptyBorder(5, 8, 0, 8));
             try {
                 Image minimize = ImageIO.read(new File("src/main/resources/img/toolbar/settings.png"));
-                checkBox.setIcon(new ImageIcon(minimize));
+                btn.setIcon(new ImageIcon(minimize));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return checkBox;
+            btn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new SettingsView(mainView);
+                }
+            });
+            return btn;
         }
 
         private JButton createCloseButton(){

@@ -19,7 +19,7 @@ public class MainView extends JFrame implements View {
     private Controller controller;
     private SystemTray tray;
     private final ServersView serversView = new ServersView();
-    private final ToolbarView toolbarView = new ToolbarView();
+    private final ToolbarView toolbarView = new ToolbarView(this);
     private TrayIcon trayIcon;
 
     public MainView() throws HeadlessException {
@@ -49,7 +49,7 @@ public class MainView extends JFrame implements View {
 
         addWindowListener(new WindowAdapter() {
             @Override
-            public void windowIconified(WindowEvent e) {
+            public void windowDeiconified(WindowEvent e) {
                 try{
                     //TODO fix bug
                     serversView.getSelectedServer().changeLinesColor(new Color(255, 192, 203));
