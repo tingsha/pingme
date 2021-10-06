@@ -1,6 +1,8 @@
 package main.java.view;
 
 import main.java.controller.Controller;
+import main.java.view.utils.Colors;
+import main.java.view.utils.TextBubbleBorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -190,7 +192,10 @@ public class ServersView extends JPanel implements View{
             this.pathToIcon = pathToIcon;
             this.domain = domain;
             this.linkedLines = linkedLines;
-            setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0));
+            UIManager.getDefaults().put("JPanel.contentBorderInsets", new Insets(0,0,0,0));
+            UIManager.getDefaults().put("JPanel.tabsOverlapBorder", true);
+            setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0,
+                    new Insets(0, 0, 0, 0), Colors.SERVERS_BACKGROUND));
             setBorderPainted(true);
             setIcon(getIcon());
             setHorizontalAlignment(SwingConstants.CENTER);
@@ -202,12 +207,14 @@ public class ServersView extends JPanel implements View{
                 public void itemStateChanged(ItemEvent e) {
                     if (e.getStateChange() == ItemEvent.SELECTED) {
                         selectedServer = ServerButton.this;
-                        setBorder(new TextBubbleBorder(Colors.SELECTED_LINE, 2, 16, 0));
+                        setBorder(new TextBubbleBorder(Colors.SELECTED_LINE, 2, 16, 0,
+                                new Insets(0, 0, 0, 0), Colors.SERVERS_BACKGROUND));
                         changeLinesColor(Colors.SELECTED_LINE);
                         pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_pink.png"));
                         controller.onClickServerBtn(ServersView.ServerButton.this);
                     } else if (e.getStateChange() == ItemEvent.DESELECTED){
-                        setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0));
+                        setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0,
+                                new Insets(0, 0, 0, 0), Colors.SERVERS_BACKGROUND));
                         changeLinesColor(Colors.DESELECTED_LINE);
                         pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_grey.png"));
                     }

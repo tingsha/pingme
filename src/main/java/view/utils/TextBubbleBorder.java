@@ -1,4 +1,4 @@
-package main.java.view;
+package main.java.view.utils;
 
 import javax.swing.border.AbstractBorder;
 import java.awt.*;
@@ -15,13 +15,12 @@ public class TextBubbleBorder extends AbstractBorder {
     private int strokePad;
     private int pointerPad = 4;
     private boolean left = true;
+    private Color bgColor;
     RenderingHints hints;
 
-    TextBubbleBorder(Color color) {
-        this(color, 4, 8, 7);
-    }
-
-    TextBubbleBorder(Color color, int thickness, int radii, int pointerSize) {
+    public TextBubbleBorder(Color color, int thickness, int radii, int pointerSize, Insets insets, Color bgColor) {
+        this.bgColor = bgColor;
+        this.insets = insets;
         this.thickness = thickness;
         this.radii = radii;
         this.pointerSize = pointerSize;
@@ -36,12 +35,6 @@ public class TextBubbleBorder extends AbstractBorder {
 
         int pad = radii + strokePad;
         int bottomPad = pad + pointerSize + strokePad;
-        insets = new Insets(pad, pad, bottomPad, pad);
-    }
-
-    TextBubbleBorder(Color color, int thickness, int radii, int pointerSize, boolean left) {
-        this(color, thickness, radii, pointerSize);
-        this.left = left;
     }
 
     @Override
@@ -66,8 +59,8 @@ public class TextBubbleBorder extends AbstractBorder {
         int bottomLineY = height - thickness - pointerSize;
 
         RoundRectangle2D.Double bubble = new RoundRectangle2D.Double(
-                0 + strokePad,
-                0 + strokePad,
+                strokePad,
+                strokePad,
                 width - thickness,
                 bottomLineY,
                 radii,
@@ -112,7 +105,7 @@ public class TextBubbleBorder extends AbstractBorder {
         // of the text bubble.
         Component parent  = c.getParent();
         if (parent!=null) {
-            Color bg = Colors.SERVERS_BACKGROUND;
+            Color bg = bgColor;
             Rectangle rect = new Rectangle(0,0,width, height);
             Area borderRegion = new Area(rect);
             borderRegion.subtract(area);

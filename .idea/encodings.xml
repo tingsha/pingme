@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
-    <file url="file://$PROJECT_DIR$/src/main/resources/img/save.png" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/img/taskbar.png" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/java/view/ImageWriteEx.java" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/fonts/Bauhaus_ITC.ttf" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/charger/charger_complete.png" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/charger/charger_grey.png" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/charger/charger_pink.png" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/save.png" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/servers/add.png" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/servers/csgo.png" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/../pingme/!/src/main/resources/img/servers/dota2.png" charset="windows-1251" />

@@ -68,7 +68,7 @@ public class SpeedTestTask extends Thread{
             @Override
             public void onCompletion(SpeedTestReport report) {
                 // called when download/upload is complete
-                System.out.println("[COMPLETED] rate in bit/s   : " + report.getTransferRateBit().divide(BigDecimal.valueOf(1_000_000)));
+                System.out.println("[COMPLETED] rate in Mb/s   : " + report.getTransferRateBit().divide(BigDecimal.valueOf(1_000_000)));
             }
 
             @Override

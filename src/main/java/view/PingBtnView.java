@@ -2,6 +2,7 @@ package main.java.view;
 
 import main.java.controller.Controller;
 import main.java.model.PingTask;
+import main.java.view.utils.Colors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +18,7 @@ import java.util.concurrent.Executors;
 
 public class PingBtnView extends JCheckBox implements View {
     private Controller controller;
-    private final Color bgColor = new Color(43, 43, 43);
+    private final Color bgColor = Colors.SERVERS_BACKGROUND;
     private final static Logger logger = LoggerFactory.getLogger(PingBtnView.class);
 
     public PingBtnView(){

@@ -1,4 +1,4 @@
-package main.java.view;
+package main.java.view.utils;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

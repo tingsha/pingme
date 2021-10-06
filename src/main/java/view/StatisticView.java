@@ -1,10 +1,11 @@
 package main.java.view;
 
 import main.java.controller.Controller;
+import main.java.view.utils.Dragger;
+import main.java.view.utils.ImageWriteEx;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.TimeUnit;
 
 public class StatisticView extends JWindow implements View{
     private Controller controller;

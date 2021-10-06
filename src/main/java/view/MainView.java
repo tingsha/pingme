@@ -2,6 +2,8 @@ package main.java.view;
 
 import main.java.controller.Controller;
 import main.java.model.PingTask;
+import main.java.view.utils.ComponentResizer;
+import main.java.view.utils.Dragger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,11 @@ public class MainView extends JFrame implements View {
         setLayout(new BorderLayout());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
+        try{
+            setIconImage(ImageIO.read(new File("src/main/resources/img/taskbar.png")));
+        } catch (IOException e) {
+            logger.warn("Can't load taskbar icon " + e.getMessage());
+        }
 
         getRootPane().setBorder(BorderFactory.createLineBorder(new Color(77, 77, 77), 1));
 
@@ -34,7 +41,7 @@ public class MainView extends JFrame implements View {
         cr.registerComponent(this);
         cr.setSnapSize(new Dimension(10, 10));
         cr.setMaximumSize(new Dimension(1600, 800));
-        cr.setMinimumSize(new Dimension(800, 500));
+        cr.setMinimumSize(new Dimension(1000, 700));
 
         try {
             createNewTray();

@@ -1,6 +1,7 @@
 package main.java.view;
 
 import main.java.controller.Controller;
+import main.java.view.utils.Colors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,7 @@ public class ToolbarView extends JPanel implements View{
         setBackground(Colors.TOOLBAR_BACKGROUND);
         add(createAppIcon(), BorderLayout.WEST);
         add(appTitle, BorderLayout.CENTER);
-        add(createAppServiceButtons(), BorderLayout.EAST);
+        add(createServiceButtons(), BorderLayout.EAST);
     }
 
     private JButton createAppIcon(){
@@ -89,7 +90,7 @@ public class ToolbarView extends JPanel implements View{
         return true;
     }
 
-    private JPanel createAppServiceButtons(){
+    private JPanel createServiceButtons(){
         JPanel serviceButtonsPanel = new JPanel();
         serviceButtonsPanel.setBackground(Colors.TOOLBAR_BACKGROUND);
         serviceButtonsPanel.setLayout(new FlowLayout());
@@ -128,7 +129,7 @@ public class ToolbarView extends JPanel implements View{
             btn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    //mainFrame.setState(Frame.ICONIFIED);
+                    mainView.setState(Frame.ICONIFIED);
                 }
             });
             return btn;
@@ -142,15 +143,22 @@ public class ToolbarView extends JPanel implements View{
             btn.setContentAreaFilled(false);
             btn.setBorder(BorderFactory.createEmptyBorder(5, 8, 0, 8));
             try {
-                Image minimize = ImageIO.read(new File("src/main/resources/img/toolbar/settings.png"));
-                btn.setIcon(new ImageIcon(minimize));
+                btn.setIcon(new ImageIcon(ImageIO.read(new File("src/main/resources/img/toolbar/settings.png"))));
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Can't load settings icon " + e.getMessage());
             }
             btn.addActionListener(new ActionListener() {
+                SettingsView settingsView;
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    new SettingsView(mainView);
+                    if (settingsView == null)
+                        settingsView = new SettingsView(mainView);
+                    else {
+                        settingsView.setVisible(true);
+                        settingsView.setLocation(mainView.getX() + mainView.getWidth() / 2 - 400 / 2,
+                                mainView.getY() + mainView.getHeight() / 2 - 600 / 2);
+                        mainView.setEnabled(false);
+                    }
                 }
             });
             return btn;
