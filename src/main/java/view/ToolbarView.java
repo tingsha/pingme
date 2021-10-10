@@ -1,6 +1,7 @@
 package main.java.view;
 
 import main.java.controller.Controller;
+import main.java.view.settings.SettingsView;
 import main.java.view.utils.Colors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

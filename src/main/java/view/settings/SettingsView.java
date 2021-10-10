@@ -1,7 +1,7 @@
-package main.java.view;
+package main.java.view.settings;
 
 import main.java.controller.Controller;
-import main.java.view.slider.CustomSliderUI;
+import main.java.view.View;
 import main.java.view.utils.Colors;
 import main.java.view.utils.TextBubbleBorder;
 import org.slf4j.Logger;
@@ -9,17 +9,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.AbstractBorder;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.ColorUIResource;
-import javax.swing.plaf.PanelUI;
-import javax.swing.plaf.basic.BasicPanelUI;
-import javax.swing.plaf.basic.BasicTabbedPaneUI;
-import javax.swing.plaf.synth.SynthLookAndFeel;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -28,17 +23,26 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.util.Properties;
 
 public class SettingsView extends JDialog implements View {
     private Controller controller;
     private static final Logger logger = LoggerFactory.getLogger(SettingsView.class);
     private final JFrame mainView;
     private final JTextPane preview = getPreview();
+
+    private final ToggleBtn labelsBtn = new LabelsBtn(preview);
+    private final ToggleBtn unitsBtn = new UnitsBtn(preview);
+    private final ToggleBtn uploadBtn = new UploadBtn(preview);
+    private final ToggleBtn downloadBtn = new DownloadBtn(preview);
+
+    private final JSlider slider = new CustomSlider();
+    private final JTextField sizeChooser = createSizeChooser();
+
+    private Color colorToSave;
+    private int sizeToSave = 0;
+    private int alphaToSave = 0;
 
     public SettingsView(JFrame mainView) {
         this.mainView = mainView;
@@ -48,6 +52,7 @@ public class SettingsView extends JDialog implements View {
         setAlwaysOnTop(true);
 
         JPanel rootPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        rootPanel.setOpaque(true);
         rootPanel.setBackground(Colors.TOOLBAR_BACKGROUND);
         rootPanel.setBorder(new TextBubbleBorder(new Color(77, 77, 77), 1, 16, 0,
                 new Insets(20, 0, 0, 0), Colors.SERVERS_BACKGROUND));
@@ -61,17 +66,17 @@ public class SettingsView extends JDialog implements View {
         rootPanel.add(createJTextField("Color"));
         rootPanel.add(createColorsPanel());
         rootPanel.add(createJTextField("Size", BorderFactory.createEmptyBorder(0, 12, 0, 10)));
-        rootPanel.add(createSizeChooser());
+        rootPanel.add(sizeChooser);
         rootPanel.add(createJTextField("Alpha", BorderFactory.createEmptyBorder(0, 20, 0, 8)));
-        rootPanel.add(createSlider());
+        rootPanel.add(slider);
         rootPanel.add(createJTextField("Upload", BorderFactory.createEmptyBorder(0, 20, 0, 12)));
-        rootPanel.add(new ToggleBtn("upload: 60Mb/s\n"));
+        rootPanel.add(uploadBtn);
         rootPanel.add(createJTextField("Download", BorderFactory.createEmptyBorder(0, 145, 0, 12)));
-        rootPanel.add(new ToggleBtn("download: 59Mb/s"));
+        rootPanel.add(downloadBtn);
         rootPanel.add(createJTextField("Labels", BorderFactory.createEmptyBorder(0, 20, 0, 14)));
-        rootPanel.add(new ToggleBtn("ping:", "upload:", "download:"));
+        rootPanel.add(labelsBtn);
         rootPanel.add(createJTextField("Units", BorderFactory.createEmptyBorder(0, 146, 0, 41)));
-        rootPanel.add(new ToggleBtn("ms", "Mb/s"));
+        rootPanel.add(unitsBtn);
         rootPanel.add(createVerificationPanel(), BorderLayout.SOUTH);
 
         add(rootPanel);
@@ -81,10 +86,62 @@ public class SettingsView extends JDialog implements View {
         setPreferredSize(new Dimension(400, 480));
         setVisible(true);
         pack();
+
+        loadSettings();
+
+        labelsBtn.checkCollision();
+        unitsBtn.checkCollision();
+    }
+
+    private void loadSettings() {
+        Properties properties = new Properties();
+        try (FileInputStream inputStream = new FileInputStream("src/main/resources/config.properties")) {
+            properties.load(inputStream);
+            int red = Integer.parseInt(properties.getProperty("red"));
+            int green = Integer.parseInt(properties.getProperty("green"));
+            int blue = Integer.parseInt(properties.getProperty("blue"));
+            int alpha = Integer.parseInt(properties.getProperty("alpha"));
+
+            preview.setForeground(new Color(red, green, blue, alpha));
+            slider.setValue(alpha);
+            sizeChooser.setText(properties.getProperty("size"));
+            labelsBtn.setSelected(Boolean.parseBoolean(properties.getProperty("labels")));
+            unitsBtn.setSelected(Boolean.parseBoolean(properties.getProperty("units")));
+            uploadBtn.setSelected(Boolean.parseBoolean(properties.getProperty("upload")));
+            downloadBtn.setSelected(Boolean.parseBoolean(properties.getProperty("download")));
+
+            ToggleBtn[] btns = {uploadBtn, downloadBtn, labelsBtn, unitsBtn};
+        } catch (IOException e) {
+            logger.error("Can't load settings " + e.getMessage());
+        }
+    }
+
+    private void saveSettings() {
+        Properties properties = new Properties();
+        try (FileOutputStream outputStream = new FileOutputStream("src/main/resources/config.properties")) {
+            if (colorToSave != null) {
+                properties.setProperty("red", String.valueOf(colorToSave.getRed()));
+                properties.setProperty("green", String.valueOf(colorToSave.getGreen()));
+                properties.setProperty("blue", String.valueOf(colorToSave.getBlue()));
+            } else {
+                properties.setProperty("red", "255");
+                properties.setProperty("green", "0");
+                properties.setProperty("blue", "0");
+            }
+            properties.setProperty("alpha", String.valueOf(alphaToSave));
+            properties.setProperty("size", String.valueOf(sizeToSave));
+            properties.setProperty("upload", String.valueOf(uploadBtn.isSelected()));
+            properties.setProperty("download", String.valueOf(downloadBtn.isSelected()));
+            properties.setProperty("labels", String.valueOf(labelsBtn.isSelected()));
+            properties.setProperty("units", String.valueOf(unitsBtn.isSelected()));
+            properties.store(outputStream, null);
+        } catch (IOException e) {
+            logger.error("Can't save settings " + e.getMessage());
+        }
     }
 
     //TODO remove focus color
-    private JPanel createVerificationPanel(){
+    private JPanel createVerificationPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 0));
         panel.setOpaque(true);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
@@ -103,10 +160,16 @@ public class SettingsView extends JDialog implements View {
         save.setFont(new Font("Helvetica Neue", Font.PLAIN, 16));
         save.setPreferredSize(new Dimension(80, 39));
         save.setForeground(new Color(253, 252, 255));
+        save.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveSettings();
+            }
+        });
 
         JButton cancel = new JButton("Cancel");
         cancel.setBorder(new TextBubbleBorder(new Color(46, 45, 48), 1, 10, 0,
-                new Insets(0, 0, 0,0), Colors.TOOLBAR_BACKGROUND));
+                new Insets(0, 0, 0, 0), Colors.TOOLBAR_BACKGROUND));
         cancel.setFocusPainted(false);
         cancel.setContentAreaFilled(false);
         cancel.setPreferredSize(new Dimension(100, 40));
@@ -115,6 +178,13 @@ public class SettingsView extends JDialog implements View {
         cancel.setBackground(new Color(62, 61, 64));
         cancel.setFont(new Font("Helvetica Neue", Font.PLAIN, 16));
         cancel.setForeground(new Color(149, 147, 158));
+        cancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisible(false);
+                mainView.setEnabled(true);
+            }
+        });
 
         panel.add(cancel);
         panel.add(save);
@@ -149,43 +219,16 @@ public class SettingsView extends JDialog implements View {
                 try {
                     if (!field.getText().equals("") && Integer.parseInt(field.getText()) > 0) {
                         preview.setFont(new Font("Helvetica Neue", Font.PLAIN, Integer.parseInt(field.getText())));
+                        sizeToSave = Integer.parseInt(field.getText());
                     }
-                }
-                catch (NumberFormatException ignored){}
-                catch (Exception e) {
+                } catch (NumberFormatException ignored) {
+                } catch (Exception e) {
                     logger.warn("Can't set font size " + e.getMessage());
                     preview.setFont(new Font("Helvetica Neue", Font.PLAIN, 14));
                 }
             }
         });
         return field;
-    }
-
-    private JSlider createSlider() {
-        try {
-            SynthLookAndFeel laf = new SynthLookAndFeel();
-            laf.load(SettingsView.class.getResourceAsStream("slider/slider.xml"), SettingsView.class);
-            UIManager.setLookAndFeel(laf);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        JSlider slider = new JSlider(0, 255) {
-            @Override
-            public void updateUI() {
-                setUI(new CustomSliderUI(this));
-            }
-        };
-        slider.setPreferredSize(new Dimension(320, 40));
-        slider.setBackground(Colors.TOOLBAR_BACKGROUND);
-        slider.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                Color rgb = new Color(preview.getForeground().getRGB());
-                preview.setForeground(new Color(rgb.getRed(), rgb.getGreen(), rgb.getBlue(),
-                        ((JSlider) e.getSource()).getValue()));
-            }
-        });
-        return slider;
     }
 
     private JPanel createSeparatedLine() {
@@ -245,6 +288,8 @@ public class SettingsView extends JDialog implements View {
                         Color color = btn.getBtnColor();
                         preview.setForeground(new Color(color.getRed(), color.getGreen(), color.getBlue(),
                                 preview.getForeground().getAlpha()));
+                        colorToSave = new Color(color.getRed(), color.getGreen(), color.getBlue(),
+                                preview.getForeground().getAlpha());
                     }
                 }
             });
@@ -276,9 +321,9 @@ public class SettingsView extends JDialog implements View {
 
     private JTextPane getPreview() {
         JTextPane preview = new JTextPane();
-        preview.setText("ping: 43ms\n" +
-                "upload: 60Mb/s\n" +
-                "download: 59Mb/s");
+        preview.setText("ping: 43ms\n");
+                /*"upload: 60Mb/s\n" +
+                "download: 59Mb/s");*/
         StyledDocument doc = preview.getStyledDocument();
         SimpleAttributeSet center = new SimpleAttributeSet();
         StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
@@ -332,6 +377,27 @@ public class SettingsView extends JDialog implements View {
         this.controller = controller;
     }
 
+    private class CustomSlider extends JSlider {
+        public CustomSlider(){
+            setPreferredSize(new Dimension(320, 40));
+            setBackground(Colors.TOOLBAR_BACKGROUND);
+            addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    Color rgb = new Color(preview.getForeground().getRGB());
+                    preview.setForeground(new Color(rgb.getRed(), rgb.getGreen(), rgb.getBlue(),
+                            ((JSlider) e.getSource()).getValue()));
+                    alphaToSave = ((JSlider) e.getSource()).getValue();
+                }
+            });
+        }
+
+        @Override
+        public void updateUI(){
+            setUI(new CustomSliderUI(this));
+        }
+    }
+
     private static class ColorBtn extends JCheckBox {
         private final Color btnColor;
 
@@ -341,47 +407,6 @@ public class SettingsView extends JDialog implements View {
 
         public Color getBtnColor() {
             return btnColor;
-        }
-    }
-
-    private class ToggleBtn extends JCheckBox {
-        private String sourcePreviewText;
-
-        public ToggleBtn(String... stringsToRemove) {
-            sourcePreviewText = preview.getText();
-            setPreferredSize(new Dimension(35, 40));
-            setFocusPainted(false);
-            setBorderPainted(false);
-            try {
-                setIcon(new ImageIcon(ImageIO.read(new File("src/main/resources/img/settings/switch-off.png"))));
-            } catch (IOException ex) {
-                logger.warn("Can't load toggle resources " + ex.getMessage());
-            }
-            addItemListener(new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        preview.setText(sourcePreviewText);
-                        try {
-                            setIcon(new ImageIcon(ImageIO.read(new File("src/main/resources/img/settings/switch-on.png"))));
-                        } catch (IOException ex) {
-                            logger.warn("Can't load checked toggle resources " + ex.getMessage());
-                        }
-                    } else if (e.getStateChange() == ItemEvent.DESELECTED) {
-                        sourcePreviewText = preview.getText();
-                        String newPreviewText = preview.getText();
-                        for (String s : stringsToRemove) {
-                            newPreviewText = newPreviewText.replaceAll(s, "");
-                        }
-                        preview.setText(newPreviewText);
-                        try {
-                            setIcon(new ImageIcon(ImageIO.read(new File("src/main/resources/img/settings/switch-off.png"))));
-                        } catch (IOException ex) {
-                            logger.warn("Can't load toggle resources " + ex.getMessage());
-                        }
-                    }
-                }
-            });
         }
     }
 }

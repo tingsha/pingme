@@ -1,4 +1,4 @@
-package main.java.view.slider;
+package main.java.view.settings;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicSliderUI;
