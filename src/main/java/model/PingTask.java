@@ -42,7 +42,7 @@ public class PingTask extends Thread{
                     try {
                         for (int i = 0; i < 2; i++) {
                             if (matcher.find())
-                                ping = matcher.group().replaceAll("=", "")+"ms";
+                                ping = matcher.group().replaceAll("=", "");
                         }
                     } catch (IllegalStateException e){
                         logger.warn("Can't get ping from string " + ping);

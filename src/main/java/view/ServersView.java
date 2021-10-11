@@ -9,15 +9,22 @@ import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 public class ServersView extends JPanel implements View{
+    private static final Logger logger = LoggerFactory.getLogger(ServersView.class);
     private Controller controller;
     private final PingBtnView pingBtn;
     private final List<ServerButton> serverButtons;
@@ -31,11 +38,12 @@ public class ServersView extends JPanel implements View{
 
         JPanel horizontalLinePanel = getHorizontalLinePanel();
         JPanel verticalLinePanel = getVerticalLinePanel();
+
         serverButtons = createServerBtns(horizontalLinePanel, verticalLinePanel);
 
         ButtonGroup serversGroup = new ButtonGroup();
         for (ServerButton serverButton : serverButtons)
-            serversGroup.add(serverButton);
+            serversGroup.add(serverButton.getServerBtn());
 
         constraints.insets = new Insets(0, 30, 0, 30);
 
@@ -67,6 +75,7 @@ public class ServersView extends JPanel implements View{
         constraints.gridx = 1;
         constraints.gridy= 3;
         add(pingBtn, constraints);
+
     }
 
     private List<ServerButton> createServerBtns(JPanel horizontalLinePanel, JPanel verticalLinePanel){
@@ -108,7 +117,7 @@ public class ServersView extends JPanel implements View{
                         new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
                         new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
                 )));
-        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/add.png"), "Add",
+        ServerButton btn = new ServerButton(Path.of("src/main/resources/img/servers/add.png"), "Add",
                 Arrays.asList(
                         new Line(new Point(405, 30), new Point(630, 30), horizontalLinePanel),
                         new Line(new Point(630, 30), new Point(630, 60), horizontalLinePanel),
@@ -116,7 +125,16 @@ public class ServersView extends JPanel implements View{
                         new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
                         new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
                         new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                )));
+                ));
+        Properties properties = loadProperties();
+        btn.setDomain(properties.getProperty("domain"));
+        btn.getServerBtn().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new DomainDialog(btn);
+            }
+        });
+        btns.add(btn);
         return btns;
     }
 
@@ -182,44 +200,59 @@ public class ServersView extends JPanel implements View{
         return selectedServer;
     }
 
-    public class ServerButton extends JRadioButton{
+    public class ServerButton extends JPanel{
         private static final Logger logger = LoggerFactory.getLogger(ServerButton.class);
         private final Path pathToIcon;
-        private final String domain;
+        private String domain;
         private final List<Line> linkedLines;
+        private final JRadioButton serverBtn;
+        JTextField field = new JTextField();
 
         public ServerButton(Path pathToIcon, String domain, List<Line> linkedLines) {
             this.pathToIcon = pathToIcon;
             this.domain = domain;
             this.linkedLines = linkedLines;
-            UIManager.getDefaults().put("JPanel.contentBorderInsets", new Insets(0,0,0,0));
-            UIManager.getDefaults().put("JPanel.tabsOverlapBorder", true);
-            setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0,
-                    new Insets(0, 0, 0, 0), Colors.SERVERS_BACKGROUND));
-            setBorderPainted(true);
-            setIcon(getIcon());
-            setHorizontalAlignment(SwingConstants.CENTER);
+
             setBackground(Colors.SERVERS_BACKGROUND);
-            setLayout(new BorderLayout());
             setPreferredSize(new Dimension(250, 220));
-            addItemListener(new ItemListener() {
+            setLayout(new BorderLayout());
+            setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0,
+                    new Insets(4, 4, 4, 4), Colors.SERVERS_BACKGROUND));
+
+            serverBtn = new JRadioButton();
+            serverBtn.setBorderPainted(false);
+            serverBtn.setBackground(Colors.SERVERS_BACKGROUND);
+            serverBtn.setIcon(getIcon());
+            serverBtn.setHorizontalAlignment(SwingConstants.CENTER);
+            serverBtn.addItemListener(new ItemListener() {
                 @Override
                 public void itemStateChanged(ItemEvent e) {
                     if (e.getStateChange() == ItemEvent.SELECTED) {
                         selectedServer = ServerButton.this;
                         setBorder(new TextBubbleBorder(Colors.SELECTED_LINE, 2, 16, 0,
-                                new Insets(0, 0, 0, 0), Colors.SERVERS_BACKGROUND));
+                                new Insets(4, 4, 4, 4), Colors.SERVERS_BACKGROUND));
                         changeLinesColor(Colors.SELECTED_LINE);
-                        pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_pink.png"));
+                        if (!pingBtn.isSelected())
+                            pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_pink.png"));
                         controller.onClickServerBtn(ServersView.ServerButton.this);
                     } else if (e.getStateChange() == ItemEvent.DESELECTED){
                         setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0,
-                                new Insets(0, 0, 0, 0), Colors.SERVERS_BACKGROUND));
+                                new Insets(4, 4, 4, 4), Colors.SERVERS_BACKGROUND));
                         changeLinesColor(Colors.DESELECTED_LINE);
-                        pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_grey.png"));
+                        if (!pingBtn.isSelected())
+                            pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_grey.png"));
                     }
                 }
             });
+            field.setText(domain);
+            field.setBackground(Colors.SERVERS_BACKGROUND);
+            field.setEditable(false);
+            field.setForeground(new Color(187, 187, 187));
+            field.setFont(new Font("Dialog", Font.PLAIN, 16));
+            field.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+            field.setHorizontalAlignment((int) CENTER_ALIGNMENT);
+            add(serverBtn, BorderLayout.CENTER);
+            add(field, BorderLayout.SOUTH);
         }
 
         public ImageIcon getIcon() {
@@ -231,8 +264,34 @@ public class ServersView extends JPanel implements View{
             }
         }
 
+        public JRadioButton getServerBtn() {
+            return serverBtn;
+        }
+
         public String getDomain() {
             return domain;
+        }
+
+        public void setDomain(String domain) {
+            field.setText(domain);
+            Properties properties = loadProperties();
+            try (FileOutputStream outputStream = new FileOutputStream("src/main/resources/config.properties")) {
+                Properties propertiesToSave = new Properties();
+                propertiesToSave.setProperty("red", properties.getProperty("red"));
+                propertiesToSave.setProperty("green", properties.getProperty("green"));
+                propertiesToSave.setProperty("blue", properties.getProperty("blue"));
+                propertiesToSave.setProperty("alpha", properties.getProperty("alpha"));
+                propertiesToSave.setProperty("download", properties.getProperty("download"));
+                propertiesToSave.setProperty("upload", properties.getProperty("upload"));
+                propertiesToSave.setProperty("size", properties.getProperty("size"));
+                propertiesToSave.setProperty("units", properties.getProperty("units"));
+                propertiesToSave.setProperty("labels", properties.getProperty("labels"));
+                propertiesToSave.setProperty("domain", domain);
+                propertiesToSave.store(outputStream, null);
+            } catch (IOException e) {
+                logger.warn("Can't rewrite domain in property " + e.getMessage());
+            }
+            this.domain = domain;
         }
 
         public void changeLinesColor(Color color){
@@ -243,6 +302,21 @@ public class ServersView extends JPanel implements View{
                 g2d.drawLine(line.start.x, line.start.y, line.end.x, line.end.y);
             }
         }
+
+        @Override
+        public String toString(){
+            return getDomain();
+        }
+    }
+
+    private Properties loadProperties() {
+        Properties properties = new Properties();
+        try (FileInputStream inputStream = new FileInputStream("src/main/resources/config.properties")) {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            logger.error("Can't load properties " + e.getMessage());
+        }
+        return properties;
     }
 
     public static class Line{

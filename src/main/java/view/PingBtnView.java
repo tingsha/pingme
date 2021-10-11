@@ -2,6 +2,7 @@ package main.java.view;
 
 import main.java.controller.Controller;
 import main.java.model.PingTask;
+import main.java.model.SpeedTestTask;
 import main.java.view.utils.Colors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,17 +33,16 @@ public class PingBtnView extends JCheckBox implements View {
         addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
-                StatisticView statisticView = null;
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     setImageIcon(Path.of("src/main/resources/img/charger/charger_complete.png"));
-                    statisticView = new StatisticView();
-                    StatisticView finalStatisticView = statisticView;
                     controller.onSelectPingBtn();
                     Runnable runnable = new Runnable() {
                         @Override
                         public void run() {
                             while (e.getStateChange() == ItemEvent.SELECTED){
-                                finalStatisticView.refresh(PingTask.getPing());
+                                StatisticView.getInstance().refresh(PingTask.getPing(),
+                                        SpeedTestTask.getUploadSpeed(),
+                                        SpeedTestTask.getDownloadSpeed());
                             }
                         }
                     };
@@ -50,7 +50,7 @@ public class PingBtnView extends JCheckBox implements View {
                     executor.execute(runnable);
                 } else if (e.getStateChange() == ItemEvent.DESELECTED){
                     setImageIcon(Path.of("src/main/resources/img/charger/charger_grey.png"));
-                    statisticView.setVisible(false);
+                    StatisticView.getInstance().setVisible(false);
                     controller.onDeselectPingBtn();
                 }
             }

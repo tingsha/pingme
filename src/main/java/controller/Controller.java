@@ -23,7 +23,7 @@ public class Controller {
             return;
         model.pingTest();
         mainView.hideToTray();
-        //model.speedTest();
+        model.speedTest();
     }
 
     public void onDeselectPingBtn(){

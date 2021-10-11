@@ -109,8 +109,6 @@ public class SettingsView extends JDialog implements View {
             unitsBtn.setSelected(Boolean.parseBoolean(properties.getProperty("units")));
             uploadBtn.setSelected(Boolean.parseBoolean(properties.getProperty("upload")));
             downloadBtn.setSelected(Boolean.parseBoolean(properties.getProperty("download")));
-
-            ToggleBtn[] btns = {uploadBtn, downloadBtn, labelsBtn, unitsBtn};
         } catch (IOException e) {
             logger.error("Can't load settings " + e.getMessage());
         }
