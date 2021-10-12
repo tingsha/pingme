@@ -1,8 +1,10 @@
 package main.java.model;
 
+import main.java.view.utils.PropertiesHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -18,6 +20,10 @@ public class Model {
     }
 
     public String getDomain() {
+        if (domain == null || domain.equals("")){
+            Properties properties = PropertiesHelper.loadProperties();
+            domain = properties.getProperty("domain");
+        }
         return domain;
     }
 

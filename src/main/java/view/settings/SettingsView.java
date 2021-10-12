@@ -1,8 +1,8 @@
 package main.java.view.settings;
 
 import main.java.controller.Controller;
-import main.java.view.View;
 import main.java.view.utils.Colors;
+import main.java.view.utils.PropertiesHelper;
 import main.java.view.utils.TextBubbleBorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +24,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
-public class SettingsView extends JDialog implements View {
-    private Controller controller;
+public class SettingsView extends JDialog {
     private static final Logger logger = LoggerFactory.getLogger(SettingsView.class);
     private final JFrame mainView;
     private final JTextPane preview = getPreview();
@@ -94,48 +95,39 @@ public class SettingsView extends JDialog implements View {
     }
 
     private void loadSettings() {
-        Properties properties = new Properties();
-        try (FileInputStream inputStream = new FileInputStream("src/main/resources/config.properties")) {
-            properties.load(inputStream);
-            int red = Integer.parseInt(properties.getProperty("red"));
-            int green = Integer.parseInt(properties.getProperty("green"));
-            int blue = Integer.parseInt(properties.getProperty("blue"));
-            int alpha = Integer.parseInt(properties.getProperty("alpha"));
+        Properties properties = PropertiesHelper.loadProperties();
+        int red = Integer.parseInt(properties.getProperty("red"));
+        int green = Integer.parseInt(properties.getProperty("green"));
+        int blue = Integer.parseInt(properties.getProperty("blue"));
+        int alpha = Integer.parseInt(properties.getProperty("alpha"));
 
-            preview.setForeground(new Color(red, green, blue, alpha));
-            slider.setValue(alpha);
-            sizeChooser.setText(properties.getProperty("size"));
-            labelsBtn.setSelected(Boolean.parseBoolean(properties.getProperty("labels")));
-            unitsBtn.setSelected(Boolean.parseBoolean(properties.getProperty("units")));
-            uploadBtn.setSelected(Boolean.parseBoolean(properties.getProperty("upload")));
-            downloadBtn.setSelected(Boolean.parseBoolean(properties.getProperty("download")));
-        } catch (IOException e) {
-            logger.error("Can't load settings " + e.getMessage());
-        }
+        preview.setForeground(new Color(red, green, blue, alpha));
+        slider.setValue(alpha);
+        sizeChooser.setText(properties.getProperty("size"));
+        labelsBtn.setSelected(Boolean.parseBoolean(properties.getProperty("labels")));
+        unitsBtn.setSelected(Boolean.parseBoolean(properties.getProperty("units")));
+        uploadBtn.setSelected(Boolean.parseBoolean(properties.getProperty("upload")));
+        downloadBtn.setSelected(Boolean.parseBoolean(properties.getProperty("download")));
     }
 
     private void saveSettings() {
-        Properties properties = new Properties();
-        try (FileOutputStream outputStream = new FileOutputStream("src/main/resources/config.properties")) {
-            if (colorToSave != null) {
-                properties.setProperty("red", String.valueOf(colorToSave.getRed()));
-                properties.setProperty("green", String.valueOf(colorToSave.getGreen()));
-                properties.setProperty("blue", String.valueOf(colorToSave.getBlue()));
-            } else {
-                properties.setProperty("red", "255");
-                properties.setProperty("green", "0");
-                properties.setProperty("blue", "0");
-            }
-            properties.setProperty("alpha", String.valueOf(alphaToSave));
-            properties.setProperty("size", String.valueOf(sizeToSave));
-            properties.setProperty("upload", String.valueOf(uploadBtn.isSelected()));
-            properties.setProperty("download", String.valueOf(downloadBtn.isSelected()));
-            properties.setProperty("labels", String.valueOf(labelsBtn.isSelected()));
-            properties.setProperty("units", String.valueOf(unitsBtn.isSelected()));
-            properties.store(outputStream, null);
-        } catch (IOException e) {
-            logger.error("Can't save settings " + e.getMessage());
+        Map<String, String> newProperties = new HashMap<>();
+        if (colorToSave != null) {
+            newProperties.put("red", String.valueOf(colorToSave.getRed()));
+            newProperties.put("green", String.valueOf(colorToSave.getGreen()));
+            newProperties.put("blue", String.valueOf(colorToSave.getBlue()));
+        } else {
+            newProperties.put("red", "255");
+            newProperties.put("green", "0");
+            newProperties.put("blue", "0");
         }
+        newProperties.put("alpha", String.valueOf(alphaToSave));
+        newProperties.put("size", String.valueOf(sizeToSave));
+        newProperties.put("upload", String.valueOf(uploadBtn.isSelected()));
+        newProperties.put("download", String.valueOf(downloadBtn.isSelected()));
+        newProperties.put("labels", String.valueOf(labelsBtn.isSelected()));
+        newProperties.put("units", String.valueOf(unitsBtn.isSelected()));
+        PropertiesHelper.rewriteProperties(newProperties);
     }
 
     //TODO remove focus color
@@ -370,13 +362,8 @@ public class SettingsView extends JDialog implements View {
         return title;
     }
 
-    @Override
-    public void setController(Controller controller) {
-        this.controller = controller;
-    }
-
     private class CustomSlider extends JSlider {
-        public CustomSlider(){
+        public CustomSlider() {
             setPreferredSize(new Dimension(320, 40));
             setBackground(Colors.TOOLBAR_BACKGROUND);
             addChangeListener(new ChangeListener() {
@@ -391,7 +378,7 @@ public class SettingsView extends JDialog implements View {
         }
 
         @Override
-        public void updateUI(){
+        public void updateUI() {
             setUI(new CustomSliderUI(this));
         }
     }

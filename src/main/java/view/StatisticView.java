@@ -1,23 +1,19 @@
 package main.java.view;
 
+import main.java.view.utils.PropertiesHelper;
 import main.java.controller.Controller;
-import main.java.view.settings.ToggleBtn;
 import main.java.view.utils.Dragger;
-import main.java.view.utils.ImageWriteEx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Properties;
 
-public class StatisticView extends JWindow implements View{
-    private final static Logger logger = LoggerFactory.getLogger(StatisticView.class);
-    private Controller controller;
+public class StatisticView extends JWindow{
     private final JTextPane pingString = new JTextPane();
     private static StatisticView instance;
+    private final Properties properties = PropertiesHelper.loadProperties();
 
     public static StatisticView getInstance() {
         if (instance == null)
@@ -30,7 +26,6 @@ public class StatisticView extends JWindow implements View{
         setLayout(new BorderLayout());
         setBackground(new Color(0, 0, 0, 0));
         setAlwaysOnTop(true);
-        Properties properties = loadProperties();
         int red = Integer.parseInt(properties.getProperty("red"));
         int green = Integer.parseInt(properties.getProperty("green"));
         int blue = Integer.parseInt(properties.getProperty("blue"));
@@ -52,19 +47,22 @@ public class StatisticView extends JWindow implements View{
     public void refresh(String ping, String upload, String download){
         if (ping == null || ping.equals(""))
             return;
-        Properties properties = loadProperties();
         boolean isUploadSelected = Boolean.parseBoolean(properties.getProperty("upload"));
         boolean isDownloadSelected = Boolean.parseBoolean(properties.getProperty("download"));
         boolean isUnitsSelected = Boolean.parseBoolean(properties.getProperty("units"));
         boolean isLabelsSelected = Boolean.parseBoolean(properties.getProperty("labels"));
 
         StringBuilder text = new StringBuilder();
-        if (isLabelsSelected)
-            text.append("ping: ");
-        text.append(ping);
-        if (isUnitsSelected)
-            text.append("ms");
-        text.append("\n");
+        if (ping.equals("loss"))
+            text.append("loss\n");
+        else {
+            if (isLabelsSelected)
+                text.append("ping: ");
+            text.append(ping);
+            if (isUnitsSelected)
+                text.append("ms");
+            text.append("\n");
+        }
 
         if (isUploadSelected) {
             if (isLabelsSelected)
@@ -90,20 +88,5 @@ public class StatisticView extends JWindow implements View{
             pingString.setText("");
         } catch (InterruptedException ignored) {
         }
-    }
-
-    private Properties loadProperties() {
-        Properties properties = new Properties();
-        try (FileInputStream inputStream = new FileInputStream("src/main/resources/config.properties")) {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            logger.error("Can't load settings " + e.getMessage());
-        }
-        return properties;
-    }
-
-    @Override
-    public void setController(Controller controller) {
-        this.controller = controller;
     }
 }

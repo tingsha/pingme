@@ -2,6 +2,7 @@ package main.java.view;
 
 import main.java.controller.Controller;
 import main.java.view.utils.Colors;
+import main.java.view.utils.PropertiesHelper;
 import main.java.view.utils.TextBubbleBorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,25 +14,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
-public class ServersView extends JPanel implements View{
-    private static final Logger logger = LoggerFactory.getLogger(ServersView.class);
-    private Controller controller;
+public class ServersView extends JPanel {
+    private final Controller controller;
     private final PingBtnView pingBtn;
-    private final List<ServerButton> serverButtons;
     private ServerButton selectedServer;
+    private final Properties properties = PropertiesHelper.loadProperties();
 
-    public ServersView(){
-        pingBtn = new PingBtnView();
+    public ServersView(Controller controller) {
+        this.controller = controller;
+        pingBtn = new PingBtnView(controller);
         setBackground(Colors.SERVERS_BACKGROUND);
         setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
@@ -39,7 +35,7 @@ public class ServersView extends JPanel implements View{
         JPanel horizontalLinePanel = getHorizontalLinePanel();
         JPanel verticalLinePanel = getVerticalLinePanel();
 
-        serverButtons = createServerBtns(horizontalLinePanel, verticalLinePanel);
+        List<ServerButton> serverButtons = createServerBtns(horizontalLinePanel, verticalLinePanel);
 
         ButtonGroup serversGroup = new ButtonGroup();
         for (ServerButton serverButton : serverButtons)
@@ -73,12 +69,22 @@ public class ServersView extends JPanel implements View{
         add(serverButtons.get(4), constraints);
 
         constraints.gridx = 1;
-        constraints.gridy= 3;
+        constraints.gridy = 3;
         add(pingBtn, constraints);
 
+        for (ServerButton serverButton : serverButtons) {
+            if (serverButton.getDomain().equals(properties.getProperty("lastServer"))) {
+                serverButton.serverBtn.doClick();
+                serverButton.changeLinesColor(Colors.SELECTED_LINE);
+            }
+        }
     }
 
-    private List<ServerButton> createServerBtns(JPanel horizontalLinePanel, JPanel verticalLinePanel){
+    public PingBtnView getPingBtn() {
+        return pingBtn;
+    }
+
+    private List<ServerButton> createServerBtns(JPanel horizontalLinePanel, JPanel verticalLinePanel) {
         List<ServerButton> btns = new ArrayList<>();
         btns.add(new ServerButton(Path.of("src/main/resources/img/servers/google.png"), "google.com",
                 Arrays.asList(
@@ -98,7 +104,7 @@ public class ServersView extends JPanel implements View{
                         new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
                         new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
                 )));
-        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/csgo.png"), "CS:GO",
+        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/steam.png"), "store.steampowered.com",
                 Arrays.asList(
                         new Line(new Point(405, 30), new Point(630, 30), horizontalLinePanel),
                         new Line(new Point(630, 30), new Point(800, 30), horizontalLinePanel),
@@ -108,7 +114,7 @@ public class ServersView extends JPanel implements View{
                         new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
                         new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
                 )));
-        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/dota2.png"), "Dota 2",
+        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/battlenet.png"), "blizzard.com",
                 Arrays.asList(
                         new Line(new Point(180, 30), new Point(180, 60), horizontalLinePanel),
                         new Line(new Point(180, 30), new Point(405, 30), horizontalLinePanel),
@@ -126,7 +132,6 @@ public class ServersView extends JPanel implements View{
                         new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
                         new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
                 ));
-        Properties properties = loadProperties();
         btn.setDomain(properties.getProperty("domain"));
         btn.getServerBtn().addActionListener(new ActionListener() {
             @Override
@@ -138,8 +143,8 @@ public class ServersView extends JPanel implements View{
         return btns;
     }
 
-    private JPanel getVerticalLinePanel(){
-        JPanel panel = new JPanel(){
+    private JPanel getVerticalLinePanel() {
+        JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -157,8 +162,8 @@ public class ServersView extends JPanel implements View{
         return panel;
     }
 
-    private JPanel getHorizontalLinePanel(){
-        JPanel panel = new JPanel(){
+    private JPanel getHorizontalLinePanel() {
+        JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -186,21 +191,11 @@ public class ServersView extends JPanel implements View{
         return panel;
     }
 
-    @Override
-    public void setController(Controller controller) {
-        this.controller = controller;
-        pingBtn.setController(controller);
-    }
-
-    public List<ServerButton> getServerButtons() {
-        return serverButtons;
-    }
-
     public ServerButton getSelectedServer() {
         return selectedServer;
     }
 
-    public class ServerButton extends JPanel{
+    public class ServerButton extends JPanel {
         private static final Logger logger = LoggerFactory.getLogger(ServerButton.class);
         private final Path pathToIcon;
         private String domain;
@@ -235,7 +230,7 @@ public class ServersView extends JPanel implements View{
                         if (!pingBtn.isSelected())
                             pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_pink.png"));
                         controller.onClickServerBtn(ServersView.ServerButton.this);
-                    } else if (e.getStateChange() == ItemEvent.DESELECTED){
+                    } else if (e.getStateChange() == ItemEvent.DESELECTED) {
                         setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0,
                                 new Insets(4, 4, 4, 4), Colors.SERVERS_BACKGROUND));
                         changeLinesColor(Colors.DESELECTED_LINE);
@@ -274,29 +269,17 @@ public class ServersView extends JPanel implements View{
 
         public void setDomain(String domain) {
             field.setText(domain);
-            Properties properties = loadProperties();
-            try (FileOutputStream outputStream = new FileOutputStream("src/main/resources/config.properties")) {
-                Properties propertiesToSave = new Properties();
-                propertiesToSave.setProperty("red", properties.getProperty("red"));
-                propertiesToSave.setProperty("green", properties.getProperty("green"));
-                propertiesToSave.setProperty("blue", properties.getProperty("blue"));
-                propertiesToSave.setProperty("alpha", properties.getProperty("alpha"));
-                propertiesToSave.setProperty("download", properties.getProperty("download"));
-                propertiesToSave.setProperty("upload", properties.getProperty("upload"));
-                propertiesToSave.setProperty("size", properties.getProperty("size"));
-                propertiesToSave.setProperty("units", properties.getProperty("units"));
-                propertiesToSave.setProperty("labels", properties.getProperty("labels"));
-                propertiesToSave.setProperty("domain", domain);
-                propertiesToSave.store(outputStream, null);
-            } catch (IOException e) {
-                logger.warn("Can't rewrite domain in property " + e.getMessage());
-            }
+            PropertiesHelper.rewriteProperties(new HashMap<>() {{
+                put("domain", domain);
+            }});
             this.domain = domain;
         }
 
-        public void changeLinesColor(Color color){
-            for (Line line : linkedLines){
+        public void changeLinesColor(Color color) {
+            for (Line line : linkedLines) {
                 Graphics2D g2d = (Graphics2D) line.linkedPanel.getGraphics();
+                if (g2d == null)
+                    return;
                 g2d.setStroke(new BasicStroke(2f));
                 g2d.setColor(color);
                 g2d.drawLine(line.start.x, line.start.y, line.end.x, line.end.y);
@@ -304,22 +287,12 @@ public class ServersView extends JPanel implements View{
         }
 
         @Override
-        public String toString(){
+        public String toString() {
             return getDomain();
         }
     }
 
-    private Properties loadProperties() {
-        Properties properties = new Properties();
-        try (FileInputStream inputStream = new FileInputStream("src/main/resources/config.properties")) {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            logger.error("Can't load properties " + e.getMessage());
-        }
-        return properties;
-    }
-
-    public static class Line{
+    public static class Line {
         private final Point start;
         private final Point end;
         private final JPanel linkedPanel;

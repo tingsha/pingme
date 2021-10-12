@@ -15,6 +15,8 @@ public class Controller {
     }
 
     public void onClickServerBtn(ServersView.ServerButton button){
+        if (button == null)
+            return;
         model.setDomain(button.getDomain());
     }
 

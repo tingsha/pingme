@@ -14,17 +14,20 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 
-public class MainView extends JFrame implements View {
+public class MainView extends JFrame {
     private static final Logger logger = LoggerFactory.getLogger(MainView.class);
     public static final int WIDTH = 1000;
     public static final int HEIGHT = 700;
     private Controller controller;
     private SystemTray tray;
-    private final ServersView serversView = new ServersView();
+    private final ServersView serversView;
     private final ToolbarView toolbarView = new ToolbarView(this);
     private TrayIcon trayIcon;
 
-    public MainView() throws HeadlessException {
+    public MainView(Controller controller) throws HeadlessException {
+        this.controller = controller;
+        controller.setMainView(this);
+        serversView = new ServersView(controller);
         setUndecorated(true);
         setLayout(new BorderLayout());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -64,18 +67,12 @@ public class MainView extends JFrame implements View {
                 }
             }
         });
-
+        setVisible(false);
         pack();
         setBounds(0, 0, WIDTH, HEIGHT);
         setLocationRelativeTo(null);
-    }
 
-    @Override
-    public void setController(Controller controller) {
-        this.controller = controller;
-        controller.setMainView(this);
-        serversView.setController(controller);
-        toolbarView.setController(controller);
+        serversView.getPingBtn().doClick();
     }
 
     public void createNewTray() throws IOException {

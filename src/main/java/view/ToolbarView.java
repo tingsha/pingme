@@ -14,9 +14,8 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 
-public class ToolbarView extends JPanel implements View{
+public class ToolbarView extends JPanel{
     private static final Logger logger = LoggerFactory.getLogger(ToolbarView.class);
-    private Controller controller;
     private final JTextPane appTitle = createAppTitle();
     private final JFrame mainView;
 
@@ -102,11 +101,6 @@ public class ToolbarView extends JPanel implements View{
         serviceButtonsPanel.add(serviceButtons.CLOSE_BTN);
 
         return serviceButtonsPanel;
-    }
-
-    @Override
-    public void setController(Controller controller) {
-        this.controller = controller;
     }
 
     public class ServiceButtons{
