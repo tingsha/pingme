@@ -37,6 +37,7 @@ public class PropertiesHelper {
             propertiesToSave.setProperty("labels", properties.getProperty("labels"));
             propertiesToSave.setProperty("domain", properties.getProperty("domain"));
             propertiesToSave.setProperty("lastServer", properties.getProperty("lastServer"));
+            propertiesToSave.setProperty("addBtnDomain", properties.getProperty("addBtnDomain"));
             for (Map.Entry<String, String> entry : newProperties.entrySet()){
                 propertiesToSave.setProperty(entry.getKey(), entry.getValue());
             }

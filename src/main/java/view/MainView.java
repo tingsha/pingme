@@ -57,16 +57,6 @@ public class MainView extends JFrame {
         add(toolbarView, BorderLayout.NORTH);
         Dragger.dragWindow(toolbarView.getAppTitle(), this);
 
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowDeiconified(WindowEvent e) {
-                try{
-                    //TODO fix bug
-                    serversView.getSelectedServer().changeLinesColor(new Color(255, 192, 203));
-                } catch (Exception ignored){
-                }
-            }
-        });
         setVisible(false);
         pack();
         setBounds(0, 0, WIDTH, HEIGHT);

@@ -1,11 +1,13 @@
 package main.java.view;
 
 import main.java.view.utils.Colors;
+import main.java.view.utils.PropertiesHelper;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
 
 public class DomainDialog extends JDialog {
 
@@ -29,6 +31,9 @@ public class DomainDialog extends JDialog {
             public void actionPerformed(ActionEvent e) {
                 btn.setDomain(field.getText());
                 setVisible(false);
+                PropertiesHelper.rewriteProperties(new HashMap<>(){{
+                    put("addBtnDomain", field.getText());
+                }});
             }
         });
         add(field, BorderLayout.CENTER);

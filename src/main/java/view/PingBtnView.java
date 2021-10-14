@@ -4,6 +4,7 @@ import main.java.controller.Controller;
 import main.java.model.PingTask;
 import main.java.model.SpeedTestTask;
 import main.java.view.utils.Colors;
+import main.java.view.utils.PropertiesHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +17,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 

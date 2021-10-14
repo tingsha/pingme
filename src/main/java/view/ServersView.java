@@ -23,6 +23,7 @@ public class ServersView extends JPanel {
     private final Controller controller;
     private final PingBtnView pingBtn;
     private ServerButton selectedServer;
+    private final List<ServerButton> serverButtons;
     private final Properties properties = PropertiesHelper.loadProperties();
 
     public ServersView(Controller controller) {
@@ -35,7 +36,7 @@ public class ServersView extends JPanel {
         JPanel horizontalLinePanel = getHorizontalLinePanel();
         JPanel verticalLinePanel = getVerticalLinePanel();
 
-        List<ServerButton> serverButtons = createServerBtns(horizontalLinePanel, verticalLinePanel);
+        serverButtons = createServerBtns(horizontalLinePanel, verticalLinePanel);
 
         ButtonGroup serversGroup = new ButtonGroup();
         for (ServerButton serverButton : serverButtons)
@@ -71,13 +72,6 @@ public class ServersView extends JPanel {
         constraints.gridx = 1;
         constraints.gridy = 3;
         add(pingBtn, constraints);
-
-        for (ServerButton serverButton : serverButtons) {
-            if (serverButton.getDomain().equals(properties.getProperty("lastServer"))) {
-                serverButton.serverBtn.doClick();
-                serverButton.changeLinesColor(Colors.SELECTED_LINE);
-            }
-        }
     }
 
     public PingBtnView getPingBtn() {
@@ -132,7 +126,7 @@ public class ServersView extends JPanel {
                         new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
                         new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
                 ));
-        btn.setDomain(properties.getProperty("domain"));
+        btn.setDomain(properties.getProperty("addBtnDomain"));
         btn.getServerBtn().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -147,6 +141,14 @@ public class ServersView extends JPanel {
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
+                List<Line> lines = new ArrayList<>();
+                for (ServerButton serverButton : serverButtons) {
+                    if (serverButton.getDomain().equals(properties.getProperty("lastServer"))) {
+                        serverButton.serverBtn.setSelected(true);
+                        lines = serverButton.getLinkedLines();
+                    }
+                }
+
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setColor(Colors.DESELECTED_LINE);
@@ -155,6 +157,13 @@ public class ServersView extends JPanel {
                 g2d.drawLine(125, 0, 125, 220);
                 g2d.drawLine(125, 219, 88, 219);
                 g2d.drawLine(125, 219, 161, 219);
+
+                g2d.setColor(Colors.SELECTED_LINE);
+                for (Line line : lines){
+                    if (line.linkedPanel == this)
+                        g2d.drawLine(line.start.x, line.start.y, line.end.x, line.end.y);
+                }
+
             }
         };
         panel.setPreferredSize(new Dimension(250, 220));
@@ -166,6 +175,13 @@ public class ServersView extends JPanel {
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
+                List<Line> lines = new ArrayList<>();
+                for (ServerButton serverButton : serverButtons) {
+                    if (serverButton.getDomain().equals(properties.getProperty("lastServer"))) {
+                        serverButton.serverBtn.setSelected(true);
+                        lines = serverButton.getLinkedLines();
+                    }
+                }
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setColor(Colors.DESELECTED_LINE);
@@ -184,6 +200,13 @@ public class ServersView extends JPanel {
 
                 g2d.drawLine(405, 0, 405, 30);
                 g2d.drawLine(405, 30, 405, 60);
+
+                g2d.setColor(Colors.SELECTED_LINE);
+                for (Line line : lines){
+                    if (line.linkedPanel == this) {
+                        g2d.drawLine(line.start.x, line.start.y, line.end.x, line.end.y);
+                    }
+                }
             }
         };
         panel.setPreferredSize(new Dimension(810, 60));
@@ -230,6 +253,10 @@ public class ServersView extends JPanel {
                         if (!pingBtn.isSelected())
                             pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_pink.png"));
                         controller.onClickServerBtn(ServersView.ServerButton.this);
+                        PropertiesHelper.rewriteProperties(new HashMap<>(){{
+                            put("lastServer", domain);
+                        }});
+                        System.out.println(domain);
                     } else if (e.getStateChange() == ItemEvent.DESELECTED) {
                         setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0,
                                 new Insets(4, 4, 4, 4), Colors.SERVERS_BACKGROUND));
@@ -248,6 +275,10 @@ public class ServersView extends JPanel {
             field.setHorizontalAlignment((int) CENTER_ALIGNMENT);
             add(serverBtn, BorderLayout.CENTER);
             add(field, BorderLayout.SOUTH);
+        }
+
+        public List<Line> getLinkedLines() {
+            return linkedLines;
         }
 
         public ImageIcon getIcon() {
@@ -278,8 +309,10 @@ public class ServersView extends JPanel {
         public void changeLinesColor(Color color) {
             for (Line line : linkedLines) {
                 Graphics2D g2d = (Graphics2D) line.linkedPanel.getGraphics();
-                if (g2d == null)
+                if (g2d == null) {
+                    logger.info("ServersView.changeLineColor().g2d is null");
                     return;
+                }
                 g2d.setStroke(new BasicStroke(2f));
                 g2d.setColor(color);
                 g2d.drawLine(line.start.x, line.start.y, line.end.x, line.end.y);
