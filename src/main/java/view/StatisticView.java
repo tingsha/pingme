@@ -31,6 +31,8 @@ public class StatisticView extends JWindow{
         int blue = Integer.parseInt(properties.getProperty("blue"));
         int alpha = Integer.parseInt(properties.getProperty("alpha"));
         int fontSize = Integer.parseInt(properties.getProperty("size"));
+        int locationX = Integer.parseInt(properties.getProperty("locationX"));
+        int locationY = Integer.parseInt(properties.getProperty("locationY"));
         pingString.setText("connecting...");
         pingString.setForeground(new Color(red, green, blue, alpha));
         pingString.setFont(new Font("Consolas", Font.PLAIN, fontSize));
@@ -40,6 +42,7 @@ public class StatisticView extends JWindow{
         pingString.setBorder(null);
         pingString.setPreferredSize(new Dimension(Toolkit.getDefaultToolkit().getScreenSize().width, 200));
         add(pingString, BorderLayout.WEST);
+        setLocation(locationX, locationY);
         setVisible(true);
         pack();
     }

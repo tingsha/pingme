@@ -18,8 +18,10 @@ public class ToolbarView extends JPanel{
     private static final Logger logger = LoggerFactory.getLogger(ToolbarView.class);
     private final JTextPane appTitle = createAppTitle();
     private final JFrame mainView;
+    private final Controller controller;
 
-    public ToolbarView(JFrame mainView){
+    public ToolbarView(JFrame mainView, Controller controller){
+        this.controller = controller;
         this.mainView = mainView;
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createMatteBorder(0 ,0, 1, 0, Colors.DESELECTED_LINE));
@@ -175,6 +177,7 @@ public class ToolbarView extends JPanel{
             btn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    controller.onClickExit();
                     System.exit(0);
                 }
             });

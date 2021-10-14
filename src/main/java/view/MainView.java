@@ -21,13 +21,15 @@ public class MainView extends JFrame {
     private Controller controller;
     private SystemTray tray;
     private final ServersView serversView;
-    private final ToolbarView toolbarView = new ToolbarView(this);
+    private final ToolbarView toolbarView;
     private TrayIcon trayIcon;
 
     public MainView(Controller controller) throws HeadlessException {
         this.controller = controller;
         controller.setMainView(this);
-        serversView = new ServersView(controller);
+        this.serversView = new ServersView(controller);
+        this.toolbarView = new ToolbarView(this, controller);
+
         setUndecorated(true);
         setLayout(new BorderLayout());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -82,7 +84,7 @@ public class MainView extends JFrame {
         Items = new MenuItem("Exit");
         ActionListener exitListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                controller.onClickTrayExit();
+                controller.onClickExit();
                 System.exit(0);
             }
         };

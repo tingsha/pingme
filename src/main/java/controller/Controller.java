@@ -34,7 +34,7 @@ public class Controller {
         model.stopPingTask();
     }
 
-    public void onClickTrayExit(){
+    public void onClickExit(){
         model.stopPingTask();
         mainView.removeFromTray();
     }
