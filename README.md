@@ -1,7 +1,7 @@
 # pingme!
 ### Check your internet speed and ping in a friendly shell.
 
-1. Select server or create your own (enter an ip of server).
+1. Select server or create your own (ip/dns).
 2. Choose what you want to watch (ping, upload/download speed).
 3. You can drag window with result.
 4. When you start's up application, you'll see only a window with a result. Main window will be in a tray.
