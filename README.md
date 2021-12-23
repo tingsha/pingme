@@ -1,5 +1,5 @@
 # pingme!
-##Check your internet speed and ping in a friendly shell.<br>
+###Check your internet speed and ping in a friendly shell.
 
 1. Select server or create your own (enter an ip of server).
 2. Choose what you want to watch (ping, upload/download speed).
