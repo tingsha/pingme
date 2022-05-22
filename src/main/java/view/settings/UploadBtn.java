@@ -2,7 +2,7 @@ package main.java.view.settings;
 
 import javax.swing.*;
 
-public class UploadBtn extends ToggleBtn{
+public class UploadBtn extends ToggleBtn {
     public UploadBtn(JTextPane preview) {
         super(preview);
     }

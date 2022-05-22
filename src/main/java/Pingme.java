@@ -4,12 +4,10 @@ import main.java.controller.Controller;
 import main.java.model.Model;
 import main.java.view.MainView;
 
-import java.io.IOException;
-
 public class Pingme {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Model model = new Model();
         Controller controller = new Controller(model);
-        MainView mainView = new MainView(controller);
+        new MainView(controller);
     }
 }

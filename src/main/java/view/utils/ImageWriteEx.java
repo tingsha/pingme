@@ -15,10 +15,10 @@ public class ImageWriteEx {
         g.fillRect(0, 0, w, h);
         g.setColor(Color.BLACK);
         g.drawString(str, 2, 20);
-        try{
+        try {
             File outputfile = new File("src/main/resources/img/save.png");
             ImageIO.write(bufferedImage, "png", outputfile);
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

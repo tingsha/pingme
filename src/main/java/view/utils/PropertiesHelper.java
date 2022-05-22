@@ -22,7 +22,7 @@ public class PropertiesHelper {
         return properties;
     }
 
-    public static void rewriteProperties(Map<String, String> newProperties){
+    public static void rewriteProperties(Map<String, String> newProperties) {
         Properties properties = loadProperties();
         try (FileOutputStream outputStream = new FileOutputStream("src/main/resources/config.properties")) {
             Properties propertiesToSave = new Properties();
@@ -37,7 +37,7 @@ public class PropertiesHelper {
             propertiesToSave.setProperty("labels", properties.getProperty("labels"));
             propertiesToSave.setProperty("domain", properties.getProperty("domain"));
             propertiesToSave.setProperty("lastServer", properties.getProperty("lastServer"));
-            for (Map.Entry<String, String> entry : newProperties.entrySet()){
+            for (Map.Entry<String, String> entry : newProperties.entrySet()) {
                 propertiesToSave.setProperty(entry.getKey(), entry.getValue());
             }
             propertiesToSave.store(outputStream, null);

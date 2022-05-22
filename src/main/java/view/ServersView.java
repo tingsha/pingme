@@ -1,47 +1,41 @@
 package main.java.view;
 
 import main.java.controller.Controller;
-import main.java.view.utils.Colors;
-import main.java.view.utils.PropertiesHelper;
-import main.java.view.utils.TextBubbleBorder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import main.java.utils.*;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.IOException;
-import java.nio.file.Path;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
+import java.util.Properties;
 
+/**
+ * Представление списка серверов для выбора
+ */
 public class ServersView extends JPanel {
     private final Controller controller;
-    private final PingBtnView pingBtn;
+    private final StartBtnView startBtn;
+    private final Properties properties = PropertiesUtils.loadProperties(FileUtils.getFileFromResources("/config.properties"));
+    private final List<ServerButton> serverButtons;
     private ServerButton selectedServer;
-    private final Properties properties = PropertiesHelper.loadProperties();
 
     public ServersView(Controller controller) {
         this.controller = controller;
-        pingBtn = new PingBtnView(controller);
+        startBtn = new StartBtnView(controller);
         setBackground(Colors.SERVERS_BACKGROUND);
         setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
 
-        JPanel horizontalLinePanel = getHorizontalLinePanel();
-        JPanel verticalLinePanel = getVerticalLinePanel();
-
-        List<ServerButton> serverButtons = createServerBtns(horizontalLinePanel, verticalLinePanel);
+        serverButtons = createServerBtns();
 
         ButtonGroup serversGroup = new ButtonGroup();
         for (ServerButton serverButton : serverButtons)
             serversGroup.add(serverButton.getServerBtn());
 
-        constraints.insets = new Insets(0, 30, 0, 30);
+        constraints.insets = new Insets(30, 30, 30, 30);
 
         constraints.gridx = 0;
         add(serverButtons.get(0), constraints);
@@ -53,159 +47,86 @@ public class ServersView extends JPanel {
         add(serverButtons.get(2), constraints);
 
         constraints.gridx = 0;
-        constraints.gridy = 1;
-        constraints.gridwidth = 3;
-        add(horizontalLinePanel, constraints);
-
-        constraints.gridx = 0;
         constraints.gridy = 2;
         constraints.gridwidth = 1;
         add(serverButtons.get(3), constraints);
-
-        constraints.gridx = 1;
-        add(verticalLinePanel, constraints);
 
         constraints.gridx = 2;
         add(serverButtons.get(4), constraints);
 
         constraints.gridx = 1;
         constraints.gridy = 3;
-        add(pingBtn, constraints);
-
-        for (ServerButton serverButton : serverButtons) {
-            if (serverButton.getDomain().equals(properties.getProperty("lastServer"))) {
-                serverButton.serverBtn.doClick();
-                serverButton.changeLinesColor(Colors.SELECTED_LINE);
-            }
-        }
+        add(startBtn, constraints);
     }
 
-    public PingBtnView getPingBtn() {
-        return pingBtn;
-    }
-
-    private List<ServerButton> createServerBtns(JPanel horizontalLinePanel, JPanel verticalLinePanel) {
+    /**
+     * Создать кнопки для выбора серверов
+     *
+     * @return список кнопок
+     */
+    private List<ServerButton> createServerBtns() {
         List<ServerButton> btns = new ArrayList<>();
-        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/google.png"), "google.com",
-                Arrays.asList(
-                        new Line(new Point(10, 0), new Point(10, 30), horizontalLinePanel),
-                        new Line(new Point(10, 30), new Point(180, 30), horizontalLinePanel),
-                        new Line(new Point(180, 30), new Point(405, 30), horizontalLinePanel),
-                        new Line(new Point(405, 30), new Point(405, 60), horizontalLinePanel),
-                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                )));
-        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/yandex.png"), "ya.ru",
-                Arrays.asList(
-                        new Line(new Point(405, 0), new Point(405, 30), horizontalLinePanel),
-                        new Line(new Point(405, 30), new Point(405, 60), horizontalLinePanel),
-                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                )));
-        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/steam.png"), "store.steampowered.com",
-                Arrays.asList(
-                        new Line(new Point(405, 30), new Point(630, 30), horizontalLinePanel),
-                        new Line(new Point(630, 30), new Point(800, 30), horizontalLinePanel),
-                        new Line(new Point(800, 0), new Point(800, 30), horizontalLinePanel),
-                        new Line(new Point(405, 30), new Point(405, 60), horizontalLinePanel),
-                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                )));
-        btns.add(new ServerButton(Path.of("src/main/resources/img/servers/battlenet.png"), "blizzard.com",
-                Arrays.asList(
-                        new Line(new Point(180, 30), new Point(180, 60), horizontalLinePanel),
-                        new Line(new Point(180, 30), new Point(405, 30), horizontalLinePanel),
-                        new Line(new Point(405, 30), new Point(405, 60), horizontalLinePanel),
-                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                )));
-        ServerButton btn = new ServerButton(Path.of("src/main/resources/img/servers/add.png"), "Add",
-                Arrays.asList(
-                        new Line(new Point(405, 30), new Point(630, 30), horizontalLinePanel),
-                        new Line(new Point(630, 30), new Point(630, 60), horizontalLinePanel),
-                        new Line(new Point(405, 30), new Point(405, 60), horizontalLinePanel),
-                        new Line(new Point(125, 0), new Point(125, 220), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(88, 219), verticalLinePanel),
-                        new Line(new Point(125, 219), new Point(161, 219), verticalLinePanel)
-                ));
-        btn.setDomain(properties.getProperty("domain"));
-        btn.getServerBtn().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new DomainDialog(btn);
-            }
-        });
-        btns.add(btn);
+        btns.add(new ServerButton(this, FileUtils.getFileFromResources("/img/servers/google.png"), "google.com",
+                LineBuilder.getGoogleServerLines()));
+        btns.add(new ServerButton(this, FileUtils.getFileFromResources("/img/servers/yandex.png"), "ya.ru",
+                LineBuilder.getYandexServerLines()));
+        btns.add(new ServerButton(this, FileUtils.getFileFromResources("/img/servers/steam.png"), "store.steampowered.com",
+                LineBuilder.getSteamServerLines()));
+        btns.add(new ServerButton(this, FileUtils.getFileFromResources("/img/servers/battlenet.png"), "blizzard.com",
+                LineBuilder.getBattlenetLines()));
+        ServerButton userServerBtn = new ServerButton(this, FileUtils.getFileFromResources("/img/servers/add.png"), "Add",
+                LineBuilder.getCustomLines());
+        userServerBtn.setServerAddress(properties.getProperty("userServerAddress"));
+        userServerBtn.getServerBtn().addActionListener(e -> new ServerDialogView(userServerBtn));
+        btns.add(userServerBtn);
         return btns;
     }
 
-    private JPanel getVerticalLinePanel() {
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(Colors.DESELECTED_LINE);
-                g2d.setStroke(new BasicStroke(2f));
-
-                g2d.drawLine(125, 0, 125, 220);
-                g2d.drawLine(125, 219, 88, 219);
-                g2d.drawLine(125, 219, 161, 219);
+    /**
+     * При сворачивании и разворачивании окна линии исчезают, поэтому перевыбираем сервер, чтобы перерисовать линии
+     */
+    public void selectServer() {
+        Timer timer = new Timer(100, e -> {
+            for (ServerButton serverButton : serverButtons) {
+                serverButton.changeLinesColor(Colors.DESELECTED_LINE);
             }
-        };
-        panel.setPreferredSize(new Dimension(250, 220));
-        panel.setBackground(Colors.SERVERS_BACKGROUND);
-        return panel;
+            if (selectedServer != null) {
+                selectedServer.changeLinesColor(Colors.SELECTED_LINE);
+                selectedServer.getServerBtn().setSelected(true);
+            } else if (startBtn.isSelected()) {
+                String selectedServerAddress = properties.get("serverAddress").toString();
+                serverButtons
+                        .stream()
+                        .filter(btn -> btn.getServerAddress().equals(selectedServerAddress))
+                        .findFirst()
+                        .ifPresent(serverButton -> {
+                            serverButton.getServerBtn().setSelected(true);
+                            serverButton.getServerBtn().setSelected(true);
+                        });
+            }
+        });
+        timer.setRepeats(false);
+        timer.start();
     }
 
-    private JPanel getHorizontalLinePanel() {
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(Colors.DESELECTED_LINE);
-                g2d.setStroke(new BasicStroke(2f));
-
-                g2d.drawLine(10, 0, 10, 30);
-                g2d.drawLine(800, 0, 800, 30);
-
-                g2d.drawLine(10, 30, 180, 30);
-                g2d.drawLine(180, 30, 405, 30);
-                g2d.drawLine(405, 30, 630, 30);
-                g2d.drawLine(630, 30, 800, 30);
-
-                g2d.drawLine(180, 30, 180, 60);
-                g2d.drawLine(630, 30, 630, 60);
-
-                g2d.drawLine(405, 0, 405, 30);
-                g2d.drawLine(405, 30, 405, 60);
-            }
-        };
-        panel.setPreferredSize(new Dimension(810, 60));
-        panel.setBackground(Colors.SERVERS_BACKGROUND);
-        return panel;
-    }
-
-    public ServerButton getSelectedServer() {
-        return selectedServer;
+    /**
+     * Кнопка для выбора сервера
+     */
+    public StartBtnView getStartBtn() {
+        return startBtn;
     }
 
     public class ServerButton extends JPanel {
-        private static final Logger logger = LoggerFactory.getLogger(ServerButton.class);
-        private final Path pathToIcon;
-        private String domain;
+
+        private String serverAddress;
+        private JRadioButton serverBtn;
         private final List<Line> linkedLines;
-        private final JRadioButton serverBtn;
+        private final JComponent parentView;
         JTextField field = new JTextField();
 
-        public ServerButton(Path pathToIcon, String domain, List<Line> linkedLines) {
-            this.pathToIcon = pathToIcon;
-            this.domain = domain;
+        public ServerButton(JComponent parentView, File buttonIconFile, String serverAddress, List<Line> linkedLines) {
+            this.parentView = parentView;
+            this.serverAddress = serverAddress;
             this.linkedLines = linkedLines;
 
             setBackground(Colors.SERVERS_BACKGROUND);
@@ -214,93 +135,74 @@ public class ServersView extends JPanel {
             setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0,
                     new Insets(4, 4, 4, 4), Colors.SERVERS_BACKGROUND));
 
+            initializeButton(buttonIconFile, serverAddress);
+            initializeTitle(serverAddress);
+            add(serverBtn, BorderLayout.CENTER);
+            add(field, BorderLayout.SOUTH);
+        }
+
+        private void initializeButton(File buttonIconFile, String serverAddress) {
             serverBtn = new JRadioButton();
             serverBtn.setBorderPainted(false);
             serverBtn.setBackground(Colors.SERVERS_BACKGROUND);
-            serverBtn.setIcon(getIcon());
+            serverBtn.setIcon(ImageUtils.getImageIcon(buttonIconFile));
             serverBtn.setHorizontalAlignment(SwingConstants.CENTER);
-            serverBtn.addItemListener(new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        selectedServer = ServerButton.this;
-                        setBorder(new TextBubbleBorder(Colors.SELECTED_LINE, 2, 16, 0,
-                                new Insets(4, 4, 4, 4), Colors.SERVERS_BACKGROUND));
-                        changeLinesColor(Colors.SELECTED_LINE);
-                        if (!pingBtn.isSelected())
-                            pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_pink.png"));
-                        controller.onClickServerBtn(ServersView.ServerButton.this);
-                    } else if (e.getStateChange() == ItemEvent.DESELECTED) {
-                        setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0,
-                                new Insets(4, 4, 4, 4), Colors.SERVERS_BACKGROUND));
-                        changeLinesColor(Colors.DESELECTED_LINE);
-                        if (!pingBtn.isSelected())
-                            pingBtn.setImageIcon(Path.of("src/main/resources/img/charger/charger_grey.png"));
-                    }
+            serverBtn.addItemListener(e -> {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    selectedServer = this;
+                    setBorder(new TextBubbleBorder(Colors.SELECTED_LINE, 2, 16, 0,
+                            new Insets(4, 4, 4, 4), Colors.SERVERS_BACKGROUND));
+                    changeLinesColor(Colors.SELECTED_LINE);
+                    if (!startBtn.isSelected())
+                        startBtn.setIcon(ImageUtils.getImageIcon(FileUtils.getFileFromResources("/img/charger/charger_pink.png")));
+                    controller.onClickServerBtn(serverAddress);
+                    PropertiesUtils.rewriteProperties(FileUtils.getFileFromResources("/config.properties"), Map.of("lastServer", serverAddress));
+                } else if (e.getStateChange() == ItemEvent.DESELECTED) {
+                    setBorder(new TextBubbleBorder(Colors.DESELECTED_LINE, 2, 16, 0,
+                            new Insets(4, 4, 4, 4), Colors.SERVERS_BACKGROUND));
+                    changeLinesColor(Colors.DESELECTED_LINE);
+                    if (!startBtn.isSelected())
+                        startBtn.setIcon(ImageUtils.getImageIcon(FileUtils.getFileFromResources("/img/charger/charger_grey.png")));
                 }
             });
-            field.setText(domain);
+        }
+
+        private void initializeTitle(String serverAddress) {
+            field.setText(serverAddress);
             field.setBackground(Colors.SERVERS_BACKGROUND);
             field.setEditable(false);
             field.setForeground(new Color(187, 187, 187));
             field.setFont(new Font("Dialog", Font.PLAIN, 16));
             field.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
             field.setHorizontalAlignment((int) CENTER_ALIGNMENT);
-            add(serverBtn, BorderLayout.CENTER);
-            add(field, BorderLayout.SOUTH);
-        }
-
-        public ImageIcon getIcon() {
-            try {
-                return new ImageIcon(ImageIO.read(pathToIcon.toFile()));
-            } catch (IOException e) {
-                logger.error("Can't load server icon! " + e.getMessage());
-                return null;
-            }
         }
 
         public JRadioButton getServerBtn() {
             return serverBtn;
         }
 
-        public String getDomain() {
-            return domain;
+        public String getServerAddress() {
+            return serverAddress;
         }
 
-        public void setDomain(String domain) {
-            field.setText(domain);
-            PropertiesHelper.rewriteProperties(new HashMap<>() {{
-                put("domain", domain);
-            }});
-            this.domain = domain;
+        public void setServerAddress(String serverAddress) {
+            this.serverAddress = serverAddress;
+            field.setText(serverAddress);
+            PropertiesUtils.rewriteProperties(FileUtils.getFileFromResources("/config.properties"), Map.of("serverAddress", serverAddress));
         }
 
         public void changeLinesColor(Color color) {
+            Graphics2D g2d = (Graphics2D) parentView.getGraphics();
+            g2d.setStroke(new BasicStroke(2f));
+            g2d.setColor(color);
             for (Line line : linkedLines) {
-                Graphics2D g2d = (Graphics2D) line.linkedPanel.getGraphics();
-                if (g2d == null)
-                    return;
-                g2d.setStroke(new BasicStroke(2f));
-                g2d.setColor(color);
-                g2d.drawLine(line.start.x, line.start.y, line.end.x, line.end.y);
+                line.paint(g2d);
             }
         }
 
         @Override
         public String toString() {
-            return getDomain();
-        }
-    }
-
-    public static class Line {
-        private final Point start;
-        private final Point end;
-        private final JPanel linkedPanel;
-
-        public Line(Point start, Point end, JPanel linkedPanel) {
-            this.start = start;
-            this.end = end;
-            this.linkedPanel = linkedPanel;
+            return getServerAddress();
         }
     }
 }

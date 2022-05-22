@@ -2,128 +2,122 @@ package main.java.model;
 
 import fr.bmartel.speedtest.SpeedTestReport;
 import fr.bmartel.speedtest.SpeedTestSocket;
-import fr.bmartel.speedtest.inter.IRepeatListener;
 import fr.bmartel.speedtest.inter.ISpeedTestListener;
 import fr.bmartel.speedtest.model.SpeedTestError;
-import fr.bmartel.speedtest.utils.SpeedTestUtils;
+import main.java.service.NetworkService;
+import main.java.utils.ThreadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 
-public class SpeedTestTask extends Thread {
-    private static volatile int downloadSpeed = 0;
-    private static volatile int uploadSpeed = 0;
-    private SpeedTestSocket uploadSocket;
-    private SpeedTestSocket downloadSocket;
-    private final Executor executor = Executors.newFixedThreadPool(2);
+/**
+ * Задача для мониторинга скорости сети
+ */
+public class SpeedTestTask implements Runnable {
+    private static final Logger logger = LoggerFactory.getLogger(SpeedTestTask.class);
+    /**
+     * Скорость закачки в Мб/с
+     */
+    private volatile int downloadSpeed;
+    /**
+     * Скорость загрузки в Мб/с
+     */
+    private volatile int uploadSpeed;
+
+    private final SpeedTestSocket downloadSocket;
+    private final SpeedTestSocket uploadSocket;
+    private final ExecutorService executor;
+    private CountDownLatch latch;
+    private final NetworkService networkService;
+
+    public SpeedTestTask(NetworkService networkService) {
+        this.networkService = networkService;
+        executor = ThreadUtils.getDaemonExecutorService(1);
+        uploadSocket = new SpeedTestSocket();
+        downloadSocket = new SpeedTestSocket();
+        downloadSocket.addSpeedTestListener(new SpeedTestListener(SpeedType.DOWNLOAD));
+        uploadSocket.addSpeedTestListener(new SpeedTestListener(SpeedType.UPLOAD));
+    }
 
     @Override
     public void run() {
-        setDaemon(true);
-        synchronized (this) {
-            setupTestListener();
-            executor.execute(new UploadTask());
-            executor.execute(new DownloadTask());
+        //TODO убрать нахуй эти костыли с latch
+        while (networkService.isMonitoring()) {
+            try {
+                latch = new CountDownLatch(1);
+                uploadSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 10_000_000);
+                latch.await();
+                latch = new CountDownLatch(1);
+                downloadSocket.startDownload("https://scaleway.testdebit.info:443/100M/100M.zip");
+                latch.await();
+                Thread.sleep(10 * 60 * 1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    private void setupTestListener() {
-        uploadSocket = new SpeedTestSocket();
-        downloadSocket = new SpeedTestSocket();
+    /**
+     * Слушатель, который в зависимости от {@code type} обновляет {@link SpeedTestTask#downloadSpeed} или {@link SpeedTestTask#uploadSpeed
+     */
+    private class SpeedTestListener implements ISpeedTestListener {
+        /**
+         * Загрузка или закачка
+         */
+        private final SpeedType type;
 
-        // add a listener to wait for speedtest completion and progress
-        uploadSocket.addSpeedTestListener(new ISpeedTestListener() {
-            @Override
-            public void onCompletion(SpeedTestReport report) {
-                // called when download/upload is complete
-                //System.out.println("[COMPLETED] upload rate in Mb/s   : " + report.getTransferRateBit().divide(BigDecimal.valueOf(1_000_000)));
-            }
-
-            @Override
-            public void onError(SpeedTestError speedTestError, String errorMessage) {
-
-            }
-
-            @Override
-            public void onProgress(float percent, SpeedTestReport report) {
-//                called to notify download/upload progress
-//                System.out.println("[PROGRESS] upload progress : " + percent + "%");
-//                System.out.println("[PROGRESS] upload rate in Mb/s   : " + report.getTransferRateBit().divide(BigDecimal.valueOf(1_000_000)));
-                uploadSpeed = report.getTransferRateBit().divide(BigDecimal.valueOf(1_000_000)).intValue();
-            }
-        });
-        downloadSocket.addSpeedTestListener(new ISpeedTestListener() {
-            @Override
-            public void onCompletion(SpeedTestReport report) {
-                // called when download/upload is complete
-                //System.out.println("[COMPLETED] download rate in Mb/s   : " + report.getTransferRateBit().divide(BigDecimal.valueOf(1_000_000)));
-            }
-
-            @Override
-            public void onError(SpeedTestError speedTestError, String errorMessage) {
-
-            }
-
-            @Override
-            public void onProgress(float percent, SpeedTestReport report) {
-                // called to notify download/upload progress
-//                System.out.println("[PROGRESS] download progress : " + percent + "%");
-//                System.out.println("[PROGRESS] download rate in Mb/s   : " + report.getTransferRateBit().divide(BigDecimal.valueOf(1_000_000)));
-                downloadSpeed = report.getTransferRateBit().divide(BigDecimal.valueOf(1_000_000)).intValue();
-            }
-        });
-    }
-
-    public static String getDownloadSpeed() {
-        return String.valueOf(downloadSpeed);
-    }
-
-    public static String getUploadSpeed() {
-        return String.valueOf(uploadSpeed);
-    }
-
-    private class UploadTask implements Runnable {
+        public SpeedTestListener(SpeedType type) {
+            this.type = type;
+        }
 
         @Override
-        public void run() {
-            uploadSocket.startUploadRepeat("http://ipv4.ikoula.testdebit.info/", 3_600_000,
-                    2000, 10_000_000, new
-                            IRepeatListener() {
-                                @Override
-                                public void onCompletion(final SpeedTestReport report) {
-                                    // called when repeat task is finished
-                                }
+        public void onCompletion(SpeedTestReport report) {
+            latch.countDown();
+        }
 
-                                @Override
-                                public void onReport(final SpeedTestReport report) {
-                                    // called when an upload report is dispatched
-                                }
-                            });
+        @Override
+        public void onError(SpeedTestError speedTestError, String errorMessage) {
+            logger.warn(String.format("Exception during upload speed test. Exception type %s. Message: %s", speedTestError, errorMessage));
+            ThreadUtils.shutdownExecutor(executor);
+        }
+
+        @Override
+        public void onProgress(float percent, SpeedTestReport report) {
+            switch (type) {
+                case DOWNLOAD:
+                    downloadSpeed = report.getTransferRateBit().divide(BigDecimal.valueOf(100_000)).intValue();
+                case UPLOAD:
+                    uploadSpeed = report.getTransferRateBit().divide(BigDecimal.valueOf(100_000)).intValue();
+                default:
+                    throw new UnsupportedOperationException();
+            }
         }
     }
 
-    private class DownloadTask implements Runnable {
+    private enum SpeedType {
+        DOWNLOAD,
+        UPLOAD
+    }
 
-        @Override
-        public void run() {
-            downloadSocket.startDownloadRepeat("http://speedtest.tele2.net/1GB.zip",
-                    3_600_000, 2000, new
-                            IRepeatListener() {
-                                @Override
-                                public void onCompletion(final SpeedTestReport report) {
-                                    // called when repeat task is finished
-                                }
+    /**
+     * Остановить мониторинг
+     */
+    public void stopMonitoring() {
+        uploadSpeed = 0;
+        downloadSpeed = 0;
+        downloadSocket.forceStopTask();
+        uploadSocket.forceStopTask();
+        ThreadUtils.shutdownExecutor(executor);
+    }
 
-                                @Override
-                                public void onReport(final SpeedTestReport report) {
-                                    // called when a download report is dispatched
-                                }
-                            });
-        }
+    public int getDownloadSpeed() {
+        return downloadSpeed;
+    }
+
+    public int getUploadSpeed() {
+        return uploadSpeed;
     }
 }

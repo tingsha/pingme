@@ -1,44 +1,31 @@
 package main.java.model;
 
-import main.java.view.utils.PropertiesHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import main.java.utils.FileUtils;
+import main.java.utils.PropertiesUtils;
 
 import java.util.Properties;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
+/**
+ * Модель основного окна приложения
+ */
 public class Model {
-    private static final Logger logger = LoggerFactory.getLogger(Model.class);
-    private String domain;
-    private final Executor executor = Executors.newFixedThreadPool(2);
-    private Thread pingThread;
-    private Thread speedThread;
+    /**
+     * Сервер, на который будут отправляться ping запросы
+     */
+    private String serverAddress;
 
-    public void setDomain(String domain){
-        this.domain = domain;
+    public void setServerAddress(String serverAddress) {
+        this.serverAddress = serverAddress;
     }
 
-    public String getDomain() {
-        if (domain == null || domain.equals("")){
-            Properties properties = PropertiesHelper.loadProperties();
-            domain = properties.getProperty("domain");
+    /**
+     * Получить выбранный сервер, если сервер не выбран, то загружается из {@code config.properties}
+     */
+    public String getServerAddress() {
+        if (serverAddress == null || serverAddress.isEmpty()) {
+            Properties properties = PropertiesUtils.loadProperties(FileUtils.getFileFromResources("/config.properties"));
+            serverAddress = properties.getProperty("serverAddress");
         }
-        return domain;
-    }
-
-    public void speedTest(){
-        speedThread = new SpeedTestTask();
-        executor.execute(speedThread);
-    }
-
-    public void pingTest(){
-        pingThread = new PingTask(domain);
-        executor.execute(pingThread);
-    }
-
-    public void stopPingTask(){
-        PingTask.pingProcess.destroy();
-        pingThread.interrupt();
+        return serverAddress;
     }
 }

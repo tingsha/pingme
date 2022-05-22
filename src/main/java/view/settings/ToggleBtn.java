@@ -1,26 +1,24 @@
 package main.java.view.settings;
 
-import main.java.view.utils.Colors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import main.java.utils.Colors;
+import main.java.utils.FileUtils;
+import main.java.utils.ImageUtils;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.File;
-import java.io.IOException;
 
-public abstract class ToggleBtn extends JCheckBox{
-    private static final Logger logger = LoggerFactory.getLogger(ToggleBtn.class);
+/**
+ * Базовый класс для кнопок-переключателей
+ */
+public abstract class ToggleBtn extends JCheckBox {
     protected final JTextPane preview;
 
     public abstract void doChecked();
 
     public abstract void doUnchecked();
 
-    public void checkCollision(){
+    public void uncheck() {
         if (!isSelected())
             doUnchecked();
     }
@@ -31,29 +29,14 @@ public abstract class ToggleBtn extends JCheckBox{
         setFocusPainted(false);
         setBorderPainted(false);
         setBackground(Colors.TOOLBAR_BACKGROUND);
-        try {
-            setIcon(new ImageIcon(ImageIO.read(new File("src/main/resources/img/settings/switch-off.png"))));
-        } catch (IOException ex) {
-            logger.warn("Can't load toggle resources " + ex.getMessage());
-        }
-        addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    try {
-                        setIcon(new ImageIcon(ImageIO.read(new File("src/main/resources/img/settings/switch-on.png"))));
-                    } catch (IOException ex) {
-                        logger.warn("Can't load checked toggle resources " + ex.getMessage());
-                    }
-                    doChecked();
-                } else if (e.getStateChange() == ItemEvent.DESELECTED) {
-                    try {
-                        setIcon(new ImageIcon(ImageIO.read(new File("src/main/resources/img/settings/switch-off.png"))));
-                    } catch (IOException ex) {
-                        logger.warn("Can't load toggle resources " + ex.getMessage());
-                    }
-                    doUnchecked();
-                }
+        setIcon(ImageUtils.getImageIcon(FileUtils.getFileFromResources("/img/settings/switch-off.png")));
+        addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                setIcon(ImageUtils.getImageIcon(FileUtils.getFileFromResources("/img/settings/switch-on.png")));
+                doChecked();
+            } else if (e.getStateChange() == ItemEvent.DESELECTED) {
+                setIcon(ImageUtils.getImageIcon(FileUtils.getFileFromResources("/img/settings/switch-off.png")));
+                doUnchecked();
             }
         });
     }

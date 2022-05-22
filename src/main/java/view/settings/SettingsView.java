@@ -1,17 +1,12 @@
 package main.java.view.settings;
 
-import main.java.controller.Controller;
-import main.java.view.utils.Colors;
-import main.java.view.utils.PropertiesHelper;
-import main.java.view.utils.TextBubbleBorder;
+import main.java.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.ColorUIResource;
@@ -19,18 +14,18 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * Представление окна с настройками
+ */
 public class SettingsView extends JDialog {
     private static final Logger logger = LoggerFactory.getLogger(SettingsView.class);
-    private final JFrame mainView;
     private final JTextPane preview = getPreview();
 
     private final ToggleBtn labelsBtn = new LabelsBtn(preview);
@@ -45,13 +40,40 @@ public class SettingsView extends JDialog {
     private int sizeToSave = 0;
     private int alphaToSave = 0;
 
-    public SettingsView(JFrame mainView) {
-        this.mainView = mainView;
-        mainView.setEnabled(false);
+    private static SettingsView instance;
 
+    /**
+     * Отобразить окно по центру {@code mainFrame}
+     */
+    public static void showSettings(JFrame mainFrame) {
+        if (instance == null) {
+            instance = new SettingsView(mainFrame);
+        } else {
+            instance.setVisible(true);
+        }
+    }
+
+    private SettingsView(JFrame mainFrame) {
         setUndecorated(true);
         setAlwaysOnTop(true);
 
+        add(createContent());
+
+        setPreferredSize(new Dimension(400, 480));
+        setVisible(true);
+        pack();
+        setLocationRelativeTo(mainFrame);
+
+        loadSettings();
+
+        labelsBtn.uncheck();
+        unitsBtn.uncheck();
+    }
+
+    /**
+     * Создать компоненты
+     */
+    private JPanel createContent() {
         JPanel rootPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         rootPanel.setOpaque(true);
         rootPanel.setBackground(Colors.TOOLBAR_BACKGROUND);
@@ -78,24 +100,15 @@ public class SettingsView extends JDialog {
         rootPanel.add(labelsBtn);
         rootPanel.add(createJTextField("Units", BorderFactory.createEmptyBorder(0, 146, 0, 41)));
         rootPanel.add(unitsBtn);
-        rootPanel.add(createVerificationPanel(), BorderLayout.SOUTH);
-
-        add(rootPanel);
-
-        setLocation(mainView.getX() + mainView.getWidth() / 2 - 400 / 2,
-                mainView.getY() + mainView.getHeight() / 2 - 490 / 2);
-        setPreferredSize(new Dimension(400, 480));
-        setVisible(true);
-        pack();
-
-        loadSettings();
-
-        labelsBtn.checkCollision();
-        unitsBtn.checkCollision();
+        rootPanel.add(createControlBtns(), BorderLayout.SOUTH);
+        return rootPanel;
     }
 
+    /**
+     * Установить полям настройки из {@code config.properties}
+     */
     private void loadSettings() {
-        Properties properties = PropertiesHelper.loadProperties();
+        Properties properties = PropertiesUtils.loadProperties(FileUtils.getFileFromResources("/config.properties"));
         int red = Integer.parseInt(properties.getProperty("red"));
         int green = Integer.parseInt(properties.getProperty("green"));
         int blue = Integer.parseInt(properties.getProperty("blue"));
@@ -110,6 +123,9 @@ public class SettingsView extends JDialog {
         downloadBtn.setSelected(Boolean.parseBoolean(properties.getProperty("download")));
     }
 
+    /**
+     * Сохранить настройки в {@code config.properties}
+     */
     private void saveSettings() {
         Map<String, String> newProperties = new HashMap<>();
         if (colorToSave != null) {
@@ -127,36 +143,36 @@ public class SettingsView extends JDialog {
         newProperties.put("download", String.valueOf(downloadBtn.isSelected()));
         newProperties.put("labels", String.valueOf(labelsBtn.isSelected()));
         newProperties.put("units", String.valueOf(unitsBtn.isSelected()));
-        PropertiesHelper.rewriteProperties(newProperties);
+        PropertiesUtils.rewriteProperties(FileUtils.getFileFromResources("/config.properties"), newProperties);
     }
 
     //TODO remove focus color
-    private JPanel createVerificationPanel() {
+
+    /**
+     * Панель с кнопками "Сохранить" и "Отмена"
+     */
+    private JPanel createControlBtns() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 0));
         panel.setOpaque(true);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
         panel.setBackground(Colors.TOOLBAR_BACKGROUND);
-        //panel.setBackground(new Color(49, 49, 51));
         panel.setPreferredSize(new Dimension(390, 70));
 
         UIManager.put("Button.focus", new ColorUIResource(new Color(0, 0, 0, 0)));
-        JButton save = new JButton("Save");
-        save.setFocusPainted(false);
-        save.setContentAreaFilled(false);
-        save.setBorder(new TextBubbleBorder(new Color(100, 98, 252), 1, 10,
-                0, new Insets(0, 0, 0, 0), Colors.TOOLBAR_BACKGROUND));
-        save.setOpaque(true);
-        save.setBackground(new Color(100, 98, 252));
-        save.setFont(new Font("Helvetica Neue", Font.PLAIN, 16));
-        save.setPreferredSize(new Dimension(80, 39));
-        save.setForeground(new Color(253, 252, 255));
-        save.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                saveSettings();
-            }
-        });
+        JButton save = createSaveBtn();
 
+        JButton cancel = createCancelBtn();
+
+        panel.add(cancel);
+        panel.add(save);
+
+        return panel;
+    }
+
+    /**
+     * Создать кнопку отмены
+     */
+    private JButton createCancelBtn() {
         JButton cancel = new JButton("Cancel");
         cancel.setBorder(new TextBubbleBorder(new Color(46, 45, 48), 1, 10, 0,
                 new Insets(0, 0, 0, 0), Colors.TOOLBAR_BACKGROUND));
@@ -168,20 +184,31 @@ public class SettingsView extends JDialog {
         cancel.setBackground(new Color(62, 61, 64));
         cancel.setFont(new Font("Helvetica Neue", Font.PLAIN, 16));
         cancel.setForeground(new Color(149, 147, 158));
-        cancel.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setVisible(false);
-                mainView.setEnabled(true);
-            }
-        });
-
-        panel.add(cancel);
-        panel.add(save);
-
-        return panel;
+        cancel.addActionListener(e -> setVisible(false));
+        return cancel;
     }
 
+    /**
+     * Создать кнопку сохранения
+     */
+    private JButton createSaveBtn() {
+        JButton save = new JButton("Save");
+        save.setFocusPainted(false);
+        save.setContentAreaFilled(false);
+        save.setBorder(new TextBubbleBorder(new Color(100, 98, 252), 1, 10,
+                0, new Insets(0, 0, 0, 0), Colors.TOOLBAR_BACKGROUND));
+        save.setOpaque(true);
+        save.setBackground(new Color(100, 98, 252));
+        save.setFont(new Font("Helvetica Neue", Font.PLAIN, 16));
+        save.setPreferredSize(new Dimension(80, 39));
+        save.setForeground(new Color(253, 252, 255));
+        save.addActionListener(e -> saveSettings());
+        return save;
+    }
+
+    /**
+     * Создать поле для выбора размера текста
+     */
     private JTextField createSizeChooser() {
         JTextField field = new JTextField("14");
         field.setForeground(Color.WHITE);
@@ -213,7 +240,7 @@ public class SettingsView extends JDialog {
                     }
                 } catch (NumberFormatException ignored) {
                 } catch (Exception e) {
-                    logger.warn("Can't set font size " + e.getMessage());
+                    logger.warn("Exception during text size changing in settings window. " + e.getMessage());
                     preview.setFont(new Font("Helvetica Neue", Font.PLAIN, 14));
                 }
             }
@@ -221,6 +248,9 @@ public class SettingsView extends JDialog {
         return field;
     }
 
+    /**
+     * Создать линию-разделитель
+     */
     private JPanel createSeparatedLine() {
         JPanel panel = new JPanel() {
             @Override
@@ -237,6 +267,9 @@ public class SettingsView extends JDialog {
         return panel;
     }
 
+    /**
+     * Создать панель для выбора цвета текста
+     */
     private JPanel createColorsPanel() {
         JPanel panel = new JPanel();
         panel.setBackground(Colors.TOOLBAR_BACKGROUND);
@@ -244,49 +277,53 @@ public class SettingsView extends JDialog {
         flowLayout.setHgap(0);
         flowLayout.setAlignment(FlowLayout.LEFT);
         panel.setLayout(flowLayout);
-        String[] uncheckedPaths = {"src/main/resources/img/settings/redCircle.png",
-                "src/main/resources/img/settings/yellowCircle.png",
-                "src/main/resources/img/settings/greenCircle.png",
-                "src/main/resources/img/settings/blackCircle.png",
-                "src/main/resources/img/settings/purpleCircle.png"};
-        String[] checkedPaths = {"src/main/resources/img/settings/redCircleChecked.png",
-                "src/main/resources/img/settings/yellowCircleChecked.png",
-                "src/main/resources/img/settings/greenCircleChecked.png",
-                "src/main/resources/img/settings/blackCircleChecked.png",
-                "src/main/resources/img/settings/purpleCircleChecked.png"};
+        File[] uncheckedBtnImages = {FileUtils.getFileFromResources("/img/settings/redCircle.png"),
+                FileUtils.getFileFromResources("/img/settings/yellowCircle.png"),
+                FileUtils.getFileFromResources("/img/settings/greenCircle.png"),
+                FileUtils.getFileFromResources("/img/settings/blackCircle.png"),
+                FileUtils.getFileFromResources("/img/settings/purpleCircle.png")};
+        File[] checkedBtnImages = {FileUtils.getFileFromResources("/img/settings/redCircleChecked.png"),
+                FileUtils.getFileFromResources("/img/settings/yellowCircleChecked.png"),
+                FileUtils.getFileFromResources("/img/settings/greenCircleChecked.png"),
+                FileUtils.getFileFromResources("/img/settings/blackCircleChecked.png"),
+                FileUtils.getFileFromResources("/img/settings/purpleCircleChecked.png")};
         Color[] colors = {new Color(255, 0, 0),
                 new Color(250, 200, 28),
                 new Color(64, 208, 182),
                 new Color(0, 0, 0),
                 new Color(100, 98, 252)};
+        createColorButtons(panel, uncheckedBtnImages, checkedBtnImages, colors);
+        return panel;
+    }
+
+    /**
+     * Создать кнопки для выбора цвета текста
+     *
+     * @param uncheckedBtnImages изображения, если кнопки не выбраны
+     * @param checkedBtnImages   изображения, если кнопки выбраны
+     * @param colors             цвета
+     */
+    private void createColorButtons(JPanel panel, File[] uncheckedBtnImages, File[] checkedBtnImages, Color[] colors) {
         ButtonGroup group = new ButtonGroup();
         for (int i = 0; i < 5; i++) {
             ColorBtn btn = new ColorBtn(colors[i]);
             btn.setMargin(new Insets(0, 0, 0, 0));
             btn.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
             btn.setBackground(Colors.TOOLBAR_BACKGROUND);
-            try {
-                btn.setSelectedIcon(new ImageIcon(ImageIO.read(new File(checkedPaths[i]))));
-                btn.setIcon(new ImageIcon(ImageIO.read(new File(uncheckedPaths[i]))));
-            } catch (IOException e) {
-                logger.warn("Can't load color icon " + e.getMessage());
-            }
-            btn.addItemListener(new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        Color color = btn.getBtnColor();
-                        preview.setForeground(new Color(color.getRed(), color.getGreen(), color.getBlue(),
-                                preview.getForeground().getAlpha()));
-                        colorToSave = new Color(color.getRed(), color.getGreen(), color.getBlue(),
-                                preview.getForeground().getAlpha());
-                    }
+            btn.setSelectedIcon(ImageUtils.getImageIcon(checkedBtnImages[i]));
+            btn.setIcon(ImageUtils.getImageIcon(uncheckedBtnImages[i]));
+            btn.addItemListener(e -> {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    Color color = btn.getBtnColor();
+                    preview.setForeground(new Color(color.getRed(), color.getGreen(), color.getBlue(),
+                            preview.getForeground().getAlpha()));
+                    colorToSave = new Color(color.getRed(), color.getGreen(), color.getBlue(),
+                            preview.getForeground().getAlpha());
                 }
             });
             group.add(btn);
             panel.add(btn);
         }
-        return panel;
     }
 
     private JTextField createJTextField(String text, Border border) {
@@ -309,11 +346,12 @@ public class SettingsView extends JDialog {
         return textField;
     }
 
+    /**
+     * Создать превью для выбранных настроек
+     */
     private JTextPane getPreview() {
         JTextPane preview = new JTextPane();
         preview.setText("ping: 43ms\n");
-                /*"upload: 60Mb/s\n" +
-                "download: 59Mb/s");*/
         StyledDocument doc = preview.getStyledDocument();
         SimpleAttributeSet center = new SimpleAttributeSet();
         StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
@@ -328,6 +366,9 @@ public class SettingsView extends JDialog {
         return preview;
     }
 
+    /**
+     * Создать кнопку для закрытия окна настроек
+     */
     private JButton createCloseBtn() {
         JButton closeBtn = new JButton();
         try {
@@ -336,13 +377,7 @@ public class SettingsView extends JDialog {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        closeBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                mainView.setEnabled(true);
-                setVisible(false);
-            }
-        });
+        closeBtn.addActionListener(e -> setVisible(false));
         closeBtn.setFocusPainted(false);
         closeBtn.setBorderPainted(false);
         closeBtn.setContentAreaFilled(false);
@@ -351,6 +386,9 @@ public class SettingsView extends JDialog {
         return closeBtn;
     }
 
+    /**
+     * Создать поле с названием меню настроек
+     */
     private JTextField createTitle(String text) {
         JTextField title = new JTextField(text);
         title.setPreferredSize(new Dimension(340, 40));
@@ -362,27 +400,30 @@ public class SettingsView extends JDialog {
         return title;
     }
 
+    /**
+     * Слайдер для изменения яркости текста
+     */
     private class CustomSlider extends JSlider {
         public CustomSlider() {
             setPreferredSize(new Dimension(320, 40));
             setBackground(Colors.TOOLBAR_BACKGROUND);
-            addChangeListener(new ChangeListener() {
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    Color rgb = new Color(preview.getForeground().getRGB());
-                    preview.setForeground(new Color(rgb.getRed(), rgb.getGreen(), rgb.getBlue(),
-                            ((JSlider) e.getSource()).getValue()));
-                    alphaToSave = ((JSlider) e.getSource()).getValue();
-                }
+            addChangeListener(e -> {
+                Color rgb = new Color(preview.getForeground().getRGB());
+                preview.setForeground(new Color(rgb.getRed(), rgb.getGreen(), rgb.getBlue(),
+                        ((JSlider) e.getSource()).getValue()));
+                alphaToSave = ((JSlider) e.getSource()).getValue();
             });
         }
 
         @Override
         public void updateUI() {
-            setUI(new CustomSliderUI(this));
+            setUI(new main.java.view.settings.CustomSlider(this));
         }
     }
 
+    /**
+     * Кнопка для выбора цвета
+     */
     private static class ColorBtn extends JCheckBox {
         private final Color btnColor;
 

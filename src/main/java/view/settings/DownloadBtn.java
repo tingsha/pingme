@@ -2,7 +2,10 @@ package main.java.view.settings;
 
 import javax.swing.*;
 
-public class DownloadBtn extends ToggleBtn{
+/**
+ * Переключатель, отвечающий за видимость скорости загрузки
+ */
+public class DownloadBtn extends ToggleBtn {
 
     public DownloadBtn(JTextPane preview) {
         super(preview);
@@ -18,10 +21,10 @@ public class DownloadBtn extends ToggleBtn{
     @Override
     public void doUnchecked() {
         if (preview.getText().contains("59")) {
-            preview.setText(preview.getText().replaceAll("download: 59Mb/s\n", ""));
-            preview.setText(preview.getText().replaceAll("download: 59\n", ""));
-            preview.setText(preview.getText().replaceAll("59Mb/s\n", ""));
-            preview.setText(preview.getText().replaceAll("59\n", ""));
+            preview.setText(preview.getText().replace("download: 59Mb/s\n", ""));
+            preview.setText(preview.getText().replace("download: 59\n", ""));
+            preview.setText(preview.getText().replace("59Mb/s\n", ""));
+            preview.setText(preview.getText().replace("59\n", ""));
         }
     }
 }

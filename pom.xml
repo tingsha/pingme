@@ -6,15 +6,19 @@
 
     <groupId>com.nanamee</groupId>
     <artifactId>pingme</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <properties>
-        <maven.compiler.source>16</maven.compiler.source>
-        <maven.compiler.target>16</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.outfile.gui>pingme</project.outfile.gui>
+        <project.fileVersion>1.0</project.fileVersion>
+        <project.companyName>nanamee</project.companyName>
+        <project.productName>pingme application</project.productName>
+        <project.internalName.gui>pingme</project.internalName.gui>
     </properties>
 
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
@@ -30,13 +34,16 @@
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.7</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/fr.bmartel/jspeedtest -->
         <dependency>
             <groupId>fr.bmartel</groupId>
             <artifactId>jspeedtest</artifactId>
             <version>1.32.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.akathist.maven.plugins.launch4j</groupId>
+            <artifactId>launch4j-maven-plugin</artifactId>
+            <version>2.1.2</version>
+        </dependency>
     </dependencies>
 
 </project>

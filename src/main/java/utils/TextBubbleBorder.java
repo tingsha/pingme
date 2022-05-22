@@ -1,22 +1,23 @@
-package main.java.view.utils;
+package main.java.utils;
 
 import javax.swing.border.AbstractBorder;
 import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.RoundRectangle2D;
 
+/**
+ * Взято из <a href="https://www.javatips.net/api/violetumleditor-master/violetproduct-swing/src/main/java/com/horstmann/violet/application/swingextension/TextBubbleBorder.java">Javatips</a>
+ */
 public class TextBubbleBorder extends AbstractBorder {
-    private Color color;
-    private int thickness = 4;
-    private int radii = 8;
-    private int pointerSize = 7;
-    private Insets insets = null;
-    private BasicStroke stroke = null;
-    private int strokePad;
-    private int pointerPad = 4;
-    private boolean left = true;
-    private Color bgColor;
-    RenderingHints hints;
+    private final Color color;
+    private final int thickness;
+    private final int radii;
+    private final int pointerSize;
+    private final Insets insets;
+    private final BasicStroke stroke;
+    private final int strokePad;
+    private final Color bgColor;
+    private final RenderingHints hints;
 
     public TextBubbleBorder(Color color, int thickness, int radii, int pointerSize, Insets insets, Color bgColor) {
         this.bgColor = bgColor;
@@ -68,6 +69,8 @@ public class TextBubbleBorder extends AbstractBorder {
 
         Polygon pointer = new Polygon();
 
+        int pointerPad = 4;
+        boolean left = true;
         if (left) {
             // left point
             pointer.addPoint(
@@ -105,12 +108,11 @@ public class TextBubbleBorder extends AbstractBorder {
         // of the text bubble.
         Component parent = c.getParent();
         if (parent != null) {
-            Color bg = bgColor;
             Rectangle rect = new Rectangle(0, 0, width, height);
             Area borderRegion = new Area(rect);
             borderRegion.subtract(area);
             g2.setClip(borderRegion);
-            g2.setColor(bg);
+            g2.setColor(bgColor);
             g2.fillRect(0, 0, width, height);
             g2.setClip(null);
         }

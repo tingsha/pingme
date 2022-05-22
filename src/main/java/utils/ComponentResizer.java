@@ -1,4 +1,4 @@
-package main.java.view.utils;
+package main.java.utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -7,6 +7,9 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Взято из <a href="https://github.com/naver/ngrinder-recorder/blob/master/src/main/java/org/ngrinder/recorder/ui/component/ComponentResizer.java">github</a>
+ */
 public class ComponentResizer extends MouseAdapter {
     private final static Dimension MINIMUM_SIZE = new Dimension(10, 10);
     private final static Dimension MAXIMUM_SIZE =
